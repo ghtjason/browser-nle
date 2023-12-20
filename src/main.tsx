@@ -1,10 +1,15 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React from "react";
+import { ChakraProvider } from "@chakra-ui/react";
+
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    {localStorage.getItem('chakra-ui-color-mode')? <></>:<>{localStorage.setItem('chakra-ui-color-mode', 'dark')}</>}
+    <ChakraProvider>
+      <App />
+    </ChakraProvider>
   </React.StrictMode>,
 )

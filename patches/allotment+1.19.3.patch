@@ -1,0 +1,17 @@
+diff --git a/node_modules/allotment/package.json b/node_modules/allotment/package.json
+index 7d6f564..433eee4 100644
+--- a/node_modules/allotment/package.json
++++ b/node_modules/allotment/package.json
+@@ -3,7 +3,11 @@
+   "version": "1.19.3",
+   "description": "React split-pane component",
+   "exports": {
+-    ".": "./dist/modern.mjs",
++    ".": {
++      "require": "./dist/legacy.js",
++      "import": "./dist/modern.mjs",
++      "types": "./dist/types/src/index.d.ts"
++    },
+     "./dist/": "./dist/"
+   },
+   "main": "./dist/legacy.js",
