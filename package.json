@@ -14,6 +14,7 @@
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@tabler/icons-react": "^2.44.0",
     "allotment": "^1.19.3",
     "framer-motion": "^10.16.16",
     "patch-package": "^8.0.0",

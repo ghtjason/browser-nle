@@ -1,6 +1,7 @@
 import "./App.css";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
+import Library from "./modules/Library";
 
 function App() {
   return (
@@ -10,10 +11,10 @@ function App() {
       }}
     >
       <Allotment defaultSizes={[2, 1]} vertical={true}>
-        <Allotment.Pane minSize={400}>
+        <Allotment.Pane minSize={300}>
           <Allotment defaultSizes={[1, 1, 1]}>
             <Allotment.Pane minSize={100}>
-              <div />
+              <Library/>
             </Allotment.Pane>
             <Allotment.Pane minSize={100}>
               <div />
@@ -23,7 +24,7 @@ function App() {
             </Allotment.Pane>
           </Allotment>
         </Allotment.Pane>
-        <Allotment.Pane minSize={400}>
+        <Allotment.Pane minSize={300}>
           <div />
         </Allotment.Pane>
       </Allotment>
