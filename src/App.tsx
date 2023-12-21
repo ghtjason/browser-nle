@@ -1,7 +1,7 @@
 import "./App.css";
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
-import Library from "./modules/Library";
+import Library from "./components/Library";
 
 function App() {
   return (

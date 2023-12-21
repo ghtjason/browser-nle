@@ -5,6 +5,34 @@ import {
   IconFolder,
   IconSquareLetterT,
 } from "@tabler/icons-react";
+import { useRef } from "react";
+import { LibStore } from "./LibStore";
+
+const media = new LibStore();
+
+function FileUploader() {
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        type="file"
+        ref={hiddenFileInput}
+        style={{ display: "none" }} // Make the file input element invisible
+        accept="image/*"
+        onChange={(e) => {
+          if (!e.target.files) return;
+          media.addImage(e.target.files[0]);
+        }}
+      />
+      <IconButton
+        aria-label="Add file"
+        icon={<IconSquarePlus />}
+        mb={3}
+        onClick={() => hiddenFileInput.current?.click()}
+      />
+    </>
+  );
+}
 
 function Sections() {
   return (
@@ -25,11 +53,7 @@ function Sections() {
               height: "100%",
             }}
           >
-            <IconButton
-              aria-label="Add files"
-              icon={<IconSquarePlus />}
-              mb={3}
-            />
+            <FileUploader />
           </div>
         </TabList>
 
