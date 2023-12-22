@@ -4,7 +4,8 @@ import {
   TabPanels,
   Tab,
   TabPanel,
-  SimpleGrid,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import { IconButton, Icon } from "@chakra-ui/react";
 import {
@@ -80,12 +81,14 @@ export default function Library() {
 
           <TabPanels>
             <TabPanel>
-              <SimpleGrid minChildWidth='200px' spacing={'20px'}>
+              <Wrap spacing='15px'>
                 {images.map((image) => (
                   // todo: make sure image name is unique
-                  <MediaCard img={image} key={image.name} />
+                  <WrapItem key={image.name}>
+                    <MediaCard img={image}/>
+                  </WrapItem>
                 ))}
-              </SimpleGrid>
+              </Wrap>
             </TabPanel>
             <TabPanel>
               <p>two!</p>
