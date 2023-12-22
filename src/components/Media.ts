@@ -1,26 +1,27 @@
-class BaseMedia {
+export abstract class BaseMedia {
   name: string;
-  objectURL: string;
-  thumbnailURL: string;
-  width: number;
-  height: number;
   size: number;
+  objectURL: string;
+  abstract thumbnailURL: string;
+  abstract width: number;
+  abstract height: number;
 
   constructor(file: File) {
     this.name = file.name;
     this.size = file.size;
     this.objectURL = URL.createObjectURL(file);
-    this.width = 0;
-    this.height = 0;
-    this.thumbnailURL = "";
   }
 }
 
 export class ImageMedia extends BaseMedia {
-  constructor(file: File) {
+
+  thumbnailURL!: string;
+  width!: number;
+  height!: number;
+
+  constructor(file: File, updateArray: ((arg0: ImageMedia) => void)) {
     super(file);
     const img = new Image();
-
     img.onload = () => {
       this.width = img.naturalWidth;
       this.height = img.naturalHeight;
@@ -37,6 +38,7 @@ export class ImageMedia extends BaseMedia {
         (blob) => {
           if (!blob) return;
           this.thumbnailURL = URL.createObjectURL(blob);
+          updateArray(this)
         },
         "image/jpeg",
         0.8
@@ -44,4 +46,5 @@ export class ImageMedia extends BaseMedia {
     };
     img.src = this.objectURL;
   }
+
 }
