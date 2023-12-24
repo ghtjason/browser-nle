@@ -13,12 +13,17 @@ import {
   IconFolder,
   IconSquareLetterT,
 } from "@tabler/icons-react";
-import { useRef } from "react";
-import { ImageMedia } from "./Media";
+import { Dispatch, SetStateAction, useRef } from "react";
+import { ImageMedia, ImageMediaTimeline } from "./Media";
 import { useState } from "react";
-import MediaCard from "./MediaCard";
+import MediaCard from "./MediaCards";
 
-export default function Library() {
+interface IProps {
+  timelineImages: ImageMediaTimeline[]; /// of type item, that was imported from other file
+  setTimelineImages: Dispatch<SetStateAction<ImageMediaTimeline[]>>;
+ }
+
+export default function Library(props: IProps) {
   const [images, setImages] = useState<ImageMedia[]>([]);
 
   function FileUploader() {
@@ -81,11 +86,11 @@ export default function Library() {
 
           <TabPanels>
             <TabPanel>
-              <Wrap spacing='15px'>
+              <Wrap spacing="15px">
                 {images.map((image) => (
                   // todo: make sure image name is unique
                   <WrapItem key={image.name}>
-                    <MediaCard img={image}/>
+                    <MediaCard img={image} />
                   </WrapItem>
                 ))}
               </Wrap>

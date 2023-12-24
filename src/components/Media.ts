@@ -14,12 +14,11 @@ export abstract class BaseMedia {
 }
 
 export class ImageMedia extends BaseMedia {
-
   thumbnailURL!: string;
   width!: number;
   height!: number;
 
-  constructor(file: File, updateArray: ((arg0: ImageMedia) => void)) {
+  constructor(file: File, updateArray: (arg0: ImageMedia) => void) {
     super(file);
     const img = new Image();
     img.onload = () => {
@@ -38,7 +37,7 @@ export class ImageMedia extends BaseMedia {
         (blob) => {
           if (!blob) return;
           this.thumbnailURL = URL.createObjectURL(blob);
-          updateArray(this)
+          updateArray(this);
         },
         "image/jpeg",
         0.8
@@ -46,5 +45,28 @@ export class ImageMedia extends BaseMedia {
     };
     img.src = this.objectURL;
   }
+}
 
+abstract class MediaTimeline {
+  abstract start: number;
+  abstract end: number;
+  abstract x: number
+  abstract y: number
+  abstract rot: number
+  abstract scale: number
+  constructor() {}
+}
+
+export class ImageMediaTimeline extends MediaTimeline {
+  start: number = 0
+  end: number = 1000
+  x: number = 0
+  y: number = 0
+  rot: number = 0
+  scale: number = 1
+  img: ImageMedia
+  constructor (img: ImageMedia) {
+    super()
+    this.img = img
+  }
 }
