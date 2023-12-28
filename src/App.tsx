@@ -3,11 +3,11 @@ import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import Library from "./components/Library";
 import Timeline from "./components/Timeline";
-import { ImageMediaTimeline } from "./components/Media";
+import { MediaTimeline } from "./components/Media";
 import { useState } from "react";
 
 function App() {
-  const [timelineImages, setTimelineImages] = useState<ImageMediaTimeline[]>([]);
+  const [timelineMedia, setTimelineMedia] = useState<MediaTimeline[]>([]);
   return (
     <div
       style={{
@@ -18,7 +18,7 @@ function App() {
         <Allotment.Pane minSize={300}>
           <Allotment defaultSizes={[1, 1, 1]}>
             <Allotment.Pane minSize={100}>
-              <Library timelineImages={timelineImages} setTimelineImages={setTimelineImages}/>
+              <Library timelineMedia={timelineMedia} setTimelineMedia={setTimelineMedia}/>
             </Allotment.Pane>
             <Allotment.Pane minSize={100}>
               <div />
@@ -29,7 +29,7 @@ function App() {
           </Allotment>
         </Allotment.Pane>
         <Allotment.Pane minSize={300}>
-          <Timeline timelineImages={timelineImages} setTimelineImages={setTimelineImages}/>
+          <Timeline timelineMedia={timelineMedia} setTimelineMedia={setTimelineMedia}/>
         </Allotment.Pane>
       </Allotment>
     </div>

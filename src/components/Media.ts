@@ -47,26 +47,23 @@ export class ImageMedia extends BaseMedia {
   }
 }
 
-abstract class MediaTimeline {
-  abstract start: number;
+export abstract class MediaTimeline {
+  start: number = 0;
   abstract end: number;
-  abstract x: number
-  abstract y: number
-  abstract rot: number
-  abstract scale: number
-  constructor() {}
-}
-
-export class ImageMediaTimeline extends MediaTimeline {
-  start: number = 0
-  end: number = 1000
   x: number = 0
   y: number = 0
   rot: number = 0
   scale: number = 1
-  img: ImageMedia
+  isSelected: boolean = false
+  abstract media: BaseMedia
+  constructor() {}
+}
+
+export class ImageMediaTimeline extends MediaTimeline {
+  end: number = 4000
+  media: ImageMedia
   constructor (img: ImageMedia) {
     super()
-    this.img = img
+    this.media = img
   }
 }

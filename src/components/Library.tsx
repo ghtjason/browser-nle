@@ -14,14 +14,14 @@ import {
   IconSquareLetterT,
 } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useRef } from "react";
-import { ImageMedia, ImageMediaTimeline } from "./Media";
+import { ImageMedia, ImageMediaTimeline, MediaTimeline } from "./Media";
 import { useState } from "react";
 import MediaCard from "./MediaCards";
 
 interface IProps {
-  timelineImages: ImageMediaTimeline[]; /// of type item, that was imported from other file
-  setTimelineImages: Dispatch<SetStateAction<ImageMediaTimeline[]>>;
- }
+  timelineMedia: MediaTimeline[];
+  setTimelineMedia: Dispatch<SetStateAction<MediaTimeline[]>>;
+}
 
 export default function Library(props: IProps) {
   const [images, setImages] = useState<ImageMedia[]>([]);
@@ -56,6 +56,11 @@ export default function Library(props: IProps) {
     setImages((images) => [...images, img]);
   }
 
+  function addImageToTimeline(img: ImageMedia) {
+    const timelineImage = new ImageMediaTimeline(img);
+    props.setTimelineMedia([...props.timelineMedia, timelineImage]);
+  }
+
   function Sections() {
     return (
       <>
@@ -85,12 +90,14 @@ export default function Library(props: IProps) {
           </TabList>
 
           <TabPanels>
-            <TabPanel>
+            <TabPanel overflowY="auto" maxHeight="100%">
               <Wrap spacing="15px">
                 {images.map((image) => (
                   // todo: make sure image name is unique
                   <WrapItem key={image.name}>
-                    <MediaCard img={image} />
+                    <div onClick={() => addImageToTimeline(image)}>
+                      <MediaCard img={image} />
+                    </div>
                   </WrapItem>
                 ))}
               </Wrap>

@@ -1,28 +1,41 @@
-import {
-  Heading,
-  Image,
-  Box,
-} from "@chakra-ui/react";
-import { ImageMedia, ImageMediaTimeline } from "./Media";
+import { Heading, Image, Box } from "@chakra-ui/react";
+import { ImageMedia, MediaTimeline } from "./Media";
 
 export default function MediaCard({ img }: { img: ImageMedia }) {
   return (
-    <Box width='175px' borderWidth='1px' borderRadius='lg' overflow='hidden'>
-        <Image src={img.thumbnailURL} alt="Dan Abramov" />
-        <Heading size="xs" noOfLines={1} padding={2}>
-          {img.name}
-        </Heading>
+    <Box width="175px" borderWidth="1px" borderRadius="lg" overflow="hidden">
+      <Image src={img.thumbnailURL} alt="Dan Abramov" />
+      <Heading size="xs" noOfLines={1} padding={2}>
+        {img.name}
+      </Heading>
     </Box>
   );
 }
 
-export function TimelineMediaCard({ img }: { img: ImageMediaTimeline }) {
-  const duration = img.end - img.start
-  const width = duration / 10
-  const offset = img.start / 10
+interface IProps {
+  media: MediaTimeline;
+  selectCard: (arg0: MediaTimeline) => void
+  height: number;
+}
+
+export function TimelineMediaCard(props: IProps) {
+  const duration = props.media.end - props.media.start;
+  const width = duration / 10;
+  const offset = props.media.start / 10;
+  const color = ((props.media.isSelected) ? '#ECC94B' : '#2D3748')
+
   return (
-    <Box width={width} borderWidth='1px' borderRadius='lg' overflow='hidden' marginLeft={offset}>
-        <Image src={img.img.thumbnailURL} alt={img.img.name} />
+    <Box
+      width={width}
+      height={props.height}
+      borderRadius="lg"
+      overflow="hidden"
+      marginLeft={offset}
+      borderColor={color}
+      borderWidth="3px"
+      onClick={() => props.selectCard(props.media)}
+    >
+      <Image src={props.media.media.thumbnailURL} alt={props.media.media.name} minHeight='100%' minWidth='100%'/>
     </Box>
   );
 }
