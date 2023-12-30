@@ -14,16 +14,16 @@ export default function MediaCard({ img }: { img: ImageMedia }) {
 
 interface IProps {
   media: MediaTimeline;
-  selectCard: (arg0: MediaTimeline) => void
+  selectCard: (arg0: MediaTimeline) => void;
   height: number;
+  track: number;
 }
 
 export function TimelineMediaCard(props: IProps) {
   const duration = props.media.end - props.media.start;
   const width = duration / 10;
   const offset = props.media.start / 10;
-  const color = ((props.media.isSelected) ? '#ECC94B' : '#2D3748')
-
+  const outline = props.media.isSelected ? "#ECC94B" : "#2D3748";
   return (
     <Box
       width={width}
@@ -31,11 +31,18 @@ export function TimelineMediaCard(props: IProps) {
       borderRadius="lg"
       overflow="hidden"
       marginLeft={offset}
-      borderColor={color}
+      borderColor={outline}
       borderWidth="3px"
       onClick={() => props.selectCard(props.media)}
+      flexShrink="0"
     >
-      <Image src={props.media.media.thumbnailURL} alt={props.media.media.name} minHeight='100%' minWidth='100%'/>
+      <Image
+        src={props.media.media.thumbnailURL}
+        alt={props.media.media.name}
+        minHeight="100%"
+        minWidth="100%"
+        draggable={false}
+      />
     </Box>
   );
 }
