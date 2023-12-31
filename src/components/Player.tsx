@@ -1,24 +1,21 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useRef,
-} from "react";
+import { Dispatch, SetStateAction, useContext, useEffect, useRef } from "react";
 import { MediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
 
 interface IProps {
   selectedCard: MediaTimeline | undefined;
-  setSelectedCard: Dispatch<SetStateAction<MediaTimeline | undefined>>;
+  selectCard: (arg0: MediaTimeline) => void;
   key: number;
   timelineMedia: MediaTimeline[];
 }
 
 export default function Player(props: IProps) {
+  const reversedMedia = props.timelineMedia.slice().reverse();
+
   function AutoScaleCanvas(canvas: fabric.Canvas | null) {
     if (canvas) {
+      canvas.setBackgroundColor("black", () => {});
       const container = document.getElementById("video");
       if (container && canvas.getWidth() == 1920) {
         const scale = container.offsetWidth / 1920;
@@ -29,12 +26,36 @@ export default function Player(props: IProps) {
     }
   }
 
+  function modifiedHandler(e: fabric.IEvent<MouseEvent>, index: number) {
+    const mediaObject = reversedMedia[index];
+    const fabricObject = e.target!;
+    mediaObject.x = fabricObject.left!;
+    mediaObject.y = fabricObject.top!;
+    mediaObject.scaleX = fabricObject.scaleX!;
+    mediaObject.scaleY = fabricObject.scaleY!;
+    mediaObject.angle = fabricObject.angle!;
+    mediaObject.flipX = fabricObject.flipX!;
+    mediaObject.flipY = fabricObject.flipY!;
+  }
+
+  function selectedHandler(mediaObject: MediaTimeline) {
+    if (mediaObject.isSelected) return;
+    console.log("changing selection");
+    console.log(mediaObject.media.name);
+    props.selectCard(mediaObject);
+    console.log(props.selectedCard)
+  }
+
   function CanvasApp() {
     const [canvas, initCanvas] = useContext(FabricContext);
 
     const canvasEl = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
-      const options = { height: 1080, width: 1920, backgroundColor: "black" };
+      const options = {
+        height: 1080,
+        width: 1920,
+        preserveObjectStacking: true,
+      };
       const canvas = new fabric.Canvas(canvasEl.current, options);
       initCanvas(canvas);
       // make the fabric.Canvas instance available to your app
@@ -43,32 +64,28 @@ export default function Player(props: IProps) {
       };
     }, []);
 
-    const circle = new fabric.Circle({
-      radius: 20,
-      fill: "green",
-      left: 100,
-      top: 100,
-    });
-    const triangle = new fabric.Triangle({
-      width: 20,
-      height: 30,
-      fill: "blue",
-      left: 50,
-      top: 50,
-    });
-
     const container = document.getElementById("video");
     if (container && canvas && canvas.getWidth() == 1920) {
-      canvas.add(circle, triangle);
-      for (const i of props.timelineMedia) {
+      for (const i of reversedMedia) {
         const url = i.media.objectURL;
         fabric.Image.fromURL(url, function (oImg) {
+          oImg.top = i.y;
+          oImg.left = i.x;
+          oImg.angle = i.angle;
+          oImg.scaleX = i.scaleX;
+          oImg.scaleY = i.scaleY;
+          oImg.on("selected", () => {
+            selectedHandler(i);
+          });
           canvas.add(oImg);
-          // console.log(canvas.getObjects())
+          if (i.isSelected) canvas.setActiveObject(oImg);
           AutoScaleCanvas(canvas);
         });
       }
       AutoScaleCanvas(canvas);
+      canvas.on("object:modified", (e) =>
+        modifiedHandler(e, canvas.getObjects().indexOf(e.target!))
+      );
     }
 
     return (

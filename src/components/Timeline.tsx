@@ -7,7 +7,7 @@ interface IProps {
   timelineMedia: MediaTimeline[];
   setTimelineMedia: Dispatch<SetStateAction<MediaTimeline[]>>;
   selectedCard: MediaTimeline | undefined;
-  setSelectedCard:  Dispatch<SetStateAction<MediaTimeline | undefined>>;
+  selectCard: (arg0: MediaTimeline) => void;
 }
 
 export default function Timeline(props: IProps) {
@@ -31,19 +31,13 @@ export default function Timeline(props: IProps) {
     };
   }, [props]);
 
-  function SelectCard(media: MediaTimeline) {
-    if (props.selectedCard) props.selectedCard.isSelected = false;
-    media.isSelected = true;
-    props.setSelectedCard(media);
-  }
-
   function RenderImageCards() {
     return (
       <Stack overflowY="auto" padding="10px 10px" height='100%'>
         {props.timelineMedia.map((media, index) => (
           <TimelineMediaCard
             media={media}
-            selectCard={SelectCard}
+            selectCard={props.selectCard}
             height={75}
             track={index}
             key={index}

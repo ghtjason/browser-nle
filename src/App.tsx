@@ -11,7 +11,12 @@ function App() {
   const [timelineMedia, setTimelineMedia] = useState<MediaTimeline[]>([]);
   const [selectedCard, setSelectedCard] = useState<MediaTimeline>();
   const [playerKey, setPlayerKey] = useState(0);
-  console.log(playerKey);
+  function SelectCard(media: MediaTimeline) {
+    if (selectedCard) selectedCard.isSelected = false;
+    media.isSelected = true;
+    setSelectedCard(media);
+  }
+  
   return (
     <div
       style={{
@@ -34,7 +39,7 @@ function App() {
               <FabricContextProvider>
                 <Player
                   selectedCard={selectedCard}
-                  setSelectedCard={setSelectedCard}
+                  selectCard={SelectCard}
                   key={playerKey}
                   timelineMedia={timelineMedia}
                 />
@@ -50,7 +55,7 @@ function App() {
             timelineMedia={timelineMedia}
             setTimelineMedia={setTimelineMedia}
             selectedCard={selectedCard}
-            setSelectedCard={setSelectedCard}
+            selectCard={SelectCard}
           />
         </Allotment.Pane>
       </Allotment>

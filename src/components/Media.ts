@@ -52,8 +52,11 @@ export abstract class MediaTimeline {
   abstract end: number;
   x: number = 0
   y: number = 0
-  rot: number = 0
-  scale: number = 1
+  angle: number = 0
+  scaleX: number = 1
+  scaleY: number = 1
+  flipX: boolean = false
+  flipY: boolean = false
   isSelected: boolean = false
   abstract media: BaseMedia
   constructor() {}
