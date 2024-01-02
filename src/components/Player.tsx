@@ -9,8 +9,9 @@ interface IProps {
   key: number;
 }
 
-export default function Player(props: IProps) {
-  props.key // key is only used to rerender, silence unused prop warning
+// props only used to rerender component on update
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function Player(_props: IProps) {
   const [timelineMedia] = useContext(TimelineMediaContext);
   const reversedMedia = timelineMedia.slice().reverse();
   const selectCard = useContext(SelectCardContext);
@@ -41,6 +42,7 @@ export default function Player(props: IProps) {
 
   function selectedHandler(mediaObject: MediaTimeline) {
     selectCard(mediaObject);
+    console.log("selected!!!z");
   }
 
   function CanvasApp() {
@@ -52,6 +54,7 @@ export default function Player(props: IProps) {
         height: 1080,
         width: 1920,
         preserveObjectStacking: true,
+        selection: false,
       };
       const canvas = new fabric.Canvas(canvasEl.current, options);
       initCanvas(canvas);
@@ -66,7 +69,7 @@ export default function Player(props: IProps) {
       for (const i of reversedMedia) {
         const url = i.media.objectURL;
         fabric.Image.fromURL(url, function (oImg) {
-          i.fabricObject = oImg
+          i.fabricObject = oImg;
           oImg.top = i.y;
           oImg.left = i.x;
           oImg.angle = i.angle;

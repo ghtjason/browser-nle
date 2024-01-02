@@ -14,14 +14,14 @@ import {
   IconSquareLetterT,
 } from "@tabler/icons-react";
 import { useContext, useRef } from "react";
-import { ImageMedia, ImageMediaTimeline } from "./Media";
+import { BaseMedia, ImageMedia, ImageMediaTimeline, VideoMedia } from "./Media";
 import { useState } from "react";
 import MediaCard from "./MediaCards";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
 
 
 export default function Library() {
-  const [images, setImages] = useState<ImageMedia[]>([]);
+  const [images, setImages] = useState<BaseMedia[]>([]);
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext)
   function FileUploader() {
     const hiddenFileInput = useRef<HTMLInputElement>(null);
@@ -31,12 +31,14 @@ export default function Library() {
           type="file"
           ref={hiddenFileInput}
           style={{ display: "none" }} // Make the file input element invisible
-          accept="image/*"
+          accept="image/*, video/*"
+          multiple={true}
           onChange={async (e) => {
             if (!e.target.files) return;
-            console.log("waiting");
-            new ImageMedia(e.target.files[0], addToImages);
-            console.log(`done: ${JSON.stringify(images)}`);
+            Array.from(e.target.files).forEach(file => {
+              if (file.type.includes('image')) new ImageMedia(file, addToImages);
+              else if (file.type.includes('video')) new VideoMedia(file, addToImages);
+            });
           }}
         />
         <IconButton
@@ -49,7 +51,7 @@ export default function Library() {
     );
   }
 
-  function addToImages(img: ImageMedia) {
+  function addToImages(img: BaseMedia) {
     setImages((images) => [...images, img]);
   }
 
@@ -89,9 +91,8 @@ export default function Library() {
           <TabPanels>
             <TabPanel overflowY="auto" maxHeight="100%">
               <Wrap spacing="15px">
-                {images.map((image) => (
-                  // todo: make sure image name is unique
-                  <WrapItem key={image.name}>
+                {images.map((image, index) => (
+                  <WrapItem key={index}>
                     <div onClick={() => addImageToTimeline(image)}>
                       <MediaCard img={image} />
                     </div>
