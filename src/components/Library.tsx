@@ -13,19 +13,16 @@ import {
   IconFolder,
   IconSquareLetterT,
 } from "@tabler/icons-react";
-import { Dispatch, SetStateAction, useRef } from "react";
-import { ImageMedia, ImageMediaTimeline, MediaTimeline } from "./Media";
+import { useContext, useRef } from "react";
+import { ImageMedia, ImageMediaTimeline } from "./Media";
 import { useState } from "react";
 import MediaCard from "./MediaCards";
+import { TimelineMediaContext } from "../context/TimelineMediaContext";
 
-interface IProps {
-  timelineMedia: MediaTimeline[];
-  setTimelineMedia: Dispatch<SetStateAction<MediaTimeline[]>>;
-}
 
-export default function Library(props: IProps) {
+export default function Library() {
   const [images, setImages] = useState<ImageMedia[]>([]);
-
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext)
   function FileUploader() {
     const hiddenFileInput = useRef<HTMLInputElement>(null);
     return (
@@ -58,7 +55,7 @@ export default function Library(props: IProps) {
 
   function addImageToTimeline(img: ImageMedia) {
     const timelineImage = new ImageMediaTimeline(img);
-    props.setTimelineMedia([...props.timelineMedia, timelineImage]);
+    setTimelineMedia([...timelineMedia, timelineImage]);
   }
 
   function Sections() {
@@ -110,6 +107,5 @@ export default function Library(props: IProps) {
       </>
     );
   }
-
   return <Sections />;
 }

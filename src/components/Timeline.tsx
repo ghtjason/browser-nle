@@ -1,22 +1,18 @@
-import { MediaTimeline } from "./Media";
+import { SelectedCardContext } from "../context/SelectedCardContext";
+import { TimelineMediaContext } from "../context/TimelineMediaContext";
 import { TimelineMediaCard } from "./MediaCards";
 import { Stack } from "@chakra-ui/react";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { useContext, useEffect } from "react";
 
-interface IProps {
-  timelineMedia: MediaTimeline[];
-  setTimelineMedia: Dispatch<SetStateAction<MediaTimeline[]>>;
-  selectedCard: MediaTimeline | undefined;
-  selectCard: (arg0: MediaTimeline) => void;
-}
 
-export default function Timeline(props: IProps) {
+export default function Timeline() {
+  const selectedCard = useContext(SelectedCardContext)
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext)
   useEffect(() => {
     function DeleteCard() {
-      if (props.selectedCard) {
-        props.selectedCard.isSelected = false;
-        props.setTimelineMedia(
-          props.timelineMedia.filter((media) => media !== props.selectedCard)
+      if (selectedCard) {
+        setTimelineMedia(
+          timelineMedia.filter((media) => media !== selectedCard)
         );
       }
     }
@@ -29,15 +25,14 @@ export default function Timeline(props: IProps) {
     return () => {
       document.removeEventListener("keydown", processKey);
     };
-  }, [props]);
+  }, [selectedCard, setTimelineMedia, timelineMedia]);
 
   function RenderImageCards() {
     return (
       <Stack overflowY="auto" padding="10px 10px" height='100%'>
-        {props.timelineMedia.map((media, index) => (
+        {timelineMedia.map((media, index) => (
           <TimelineMediaCard
             media={media}
-            selectCard={props.selectCard}
             height={75}
             track={index}
             key={index}

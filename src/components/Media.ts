@@ -57,7 +57,7 @@ export abstract class MediaTimeline {
   scaleY: number = 1
   flipX: boolean = false
   flipY: boolean = false
-  isSelected: boolean = false
+  fabricObject: fabric.Object | null = null
   abstract media: BaseMedia
   constructor() {}
 }

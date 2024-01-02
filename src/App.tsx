@@ -6,59 +6,45 @@ import { MediaTimeline } from "./components/Media";
 import { useState } from "react";
 import Player from "./components/Player";
 import { FabricContextProvider } from "./context/FabricContext";
+import { SelectedCardContextProvider } from "./context/SelectedCardContext";
+import { TimelineMediaContextProvider } from "./context/TimelineMediaContext";
 
 function App() {
-  const [timelineMedia, setTimelineMedia] = useState<MediaTimeline[]>([]);
-  const [selectedCard, setSelectedCard] = useState<MediaTimeline>();
   const [playerKey, setPlayerKey] = useState(0);
-  function SelectCard(media: MediaTimeline) {
-    if (selectedCard) selectedCard.isSelected = false;
-    media.isSelected = true;
-    setSelectedCard(media);
-  }
-  
+
   return (
     <div
       style={{
         height: "100vh",
       }}
     >
-      <Allotment defaultSizes={[2, 1]} vertical={true}>
-        <Allotment.Pane minSize={300}>
-          <Allotment
-            defaultSizes={[1, 1, 1]}
-            onDragEnd={() => setPlayerKey(playerKey + 1)}
-          >
-            <Allotment.Pane minSize={100}>
-              <Library
-                timelineMedia={timelineMedia}
-                setTimelineMedia={setTimelineMedia}
-              />
-            </Allotment.Pane>
-            <Allotment.Pane minSize={400}>
-              <FabricContextProvider>
-                <Player
-                  selectedCard={selectedCard}
-                  selectCard={SelectCard}
-                  key={playerKey}
-                  timelineMedia={timelineMedia}
-                />
-              </FabricContextProvider>
-            </Allotment.Pane>
-            <Allotment.Pane minSize={100}>
-              <div />
-            </Allotment.Pane>
-          </Allotment>
-        </Allotment.Pane>
-        <Allotment.Pane minSize={300}>
-          <Timeline
-            timelineMedia={timelineMedia}
-            setTimelineMedia={setTimelineMedia}
-            selectedCard={selectedCard}
-            selectCard={SelectCard}
-          />
-        </Allotment.Pane>
-      </Allotment>
+      <SelectedCardContextProvider>
+        <TimelineMediaContextProvider>
+          <FabricContextProvider>
+            <Allotment defaultSizes={[2, 1]} vertical={true}>
+              <Allotment.Pane minSize={300}>
+                <Allotment
+                  defaultSizes={[2, 5, 2]}
+                  onDragEnd={() => setPlayerKey(playerKey + 1)} // force rerender for player scaling
+                >
+                  <Allotment.Pane minSize={100}>
+                    <Library />
+                  </Allotment.Pane>
+                  <Allotment.Pane minSize={300}>
+                    <Player key={playerKey} />
+                  </Allotment.Pane>
+                  <Allotment.Pane minSize={100}>
+                    <div />
+                  </Allotment.Pane>
+                </Allotment>
+              </Allotment.Pane>
+              <Allotment.Pane minSize={300}>
+                <Timeline />
+              </Allotment.Pane>
+            </Allotment>
+          </FabricContextProvider>
+        </TimelineMediaContextProvider>
+      </SelectedCardContextProvider>
     </div>
   );
 }

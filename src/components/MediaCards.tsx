@@ -1,5 +1,8 @@
 import { Heading, Image, Box } from "@chakra-ui/react";
 import { ImageMedia, MediaTimeline } from "./Media";
+import { useContext } from "react";
+import { SelectCardContext, SelectedCardContext } from "../context/SelectedCardContext";
+import { FabricContext } from "../context/FabricContext";
 
 export default function MediaCard({ img }: { img: ImageMedia }) {
   return (
@@ -14,16 +17,28 @@ export default function MediaCard({ img }: { img: ImageMedia }) {
 
 interface IProps {
   media: MediaTimeline;
-  selectCard: (arg0: MediaTimeline) => void;
   height: number;
   track: number;
 }
 
+
 export function TimelineMediaCard(props: IProps) {
+  const selectCard = useContext(SelectCardContext)
+  const selectedCard = useContext(SelectedCardContext)
+  const [canvas] = useContext(FabricContext);
   const duration = props.media.end - props.media.start;
   const width = duration / 10;
   const offset = props.media.start / 10;
-  const outline = props.media.isSelected ? "#ECC94B" : "#2D3748";
+  const outline = (props.media === selectedCard)  ? "#ECC94B" : "#2D3748";
+
+  function handleClick(media: MediaTimeline) {
+    selectCard(media)
+    if (canvas) {
+      canvas.setActiveObject(media.fabricObject!)
+      canvas.renderAll()
+    }
+  }
+
   return (
     <Box
       width={width}
@@ -33,7 +48,7 @@ export function TimelineMediaCard(props: IProps) {
       marginLeft={offset}
       borderColor={outline}
       borderWidth="3px"
-      onClick={() => props.selectCard(props.media)}
+      onClick={() => handleClick(props.media)}
       flexShrink="0"
     >
       <Image

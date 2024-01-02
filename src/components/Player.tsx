@@ -1,19 +1,20 @@
-import { Dispatch, SetStateAction, useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { MediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
+import { SelectCardContext } from "../context/SelectedCardContext";
+import { TimelineMediaContext } from "../context/TimelineMediaContext";
 
 interface IProps {
-  selectedCard: MediaTimeline | undefined;
-  selectCard: (arg0: MediaTimeline) => void;
   key: number;
-  timelineMedia: MediaTimeline[];
 }
 
 export default function Player(props: IProps) {
-  const reversedMedia = props.timelineMedia.slice().reverse();
-
-  function AutoScaleCanvas(canvas: fabric.Canvas | null) {
+  props.key // key is only used to rerender, silence unused prop warning
+  const [timelineMedia] = useContext(TimelineMediaContext);
+  const reversedMedia = timelineMedia.slice().reverse();
+  const selectCard = useContext(SelectCardContext);
+  function autoScaleCanvas(canvas: fabric.Canvas | null) {
     if (canvas) {
       canvas.setBackgroundColor("black", () => {});
       const container = document.getElementById("video");
@@ -39,11 +40,7 @@ export default function Player(props: IProps) {
   }
 
   function selectedHandler(mediaObject: MediaTimeline) {
-    if (mediaObject.isSelected) return;
-    console.log("changing selection");
-    console.log(mediaObject.media.name);
-    props.selectCard(mediaObject);
-    console.log(props.selectedCard)
+    selectCard(mediaObject);
   }
 
   function CanvasApp() {
@@ -69,6 +66,7 @@ export default function Player(props: IProps) {
       for (const i of reversedMedia) {
         const url = i.media.objectURL;
         fabric.Image.fromURL(url, function (oImg) {
+          i.fabricObject = oImg
           oImg.top = i.y;
           oImg.left = i.x;
           oImg.angle = i.angle;
@@ -78,16 +76,13 @@ export default function Player(props: IProps) {
             selectedHandler(i);
           });
           canvas.add(oImg);
-          if (i.isSelected) canvas.setActiveObject(oImg);
-          AutoScaleCanvas(canvas);
         });
       }
-      AutoScaleCanvas(canvas);
+      autoScaleCanvas(canvas);
       canvas.on("object:modified", (e) =>
         modifiedHandler(e, canvas.getObjects().indexOf(e.target!))
       );
     }
-
     return (
       <div>
         <canvas ref={canvasEl} id="fabric-canvas" />
