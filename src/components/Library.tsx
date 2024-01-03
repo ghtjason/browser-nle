@@ -14,15 +14,20 @@ import {
   IconSquareLetterT,
 } from "@tabler/icons-react";
 import { useContext, useRef } from "react";
-import { BaseMedia, ImageMedia, ImageMediaTimeline, VideoMedia } from "./Media";
+import {
+  BaseMedia,
+  ImageMedia,
+  ImageMediaTimeline,
+  VideoMedia,
+  VideoMediaTimeline,
+} from "./Media";
 import { useState } from "react";
 import MediaCard from "./MediaCards";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
 
-
 export default function Library() {
   const [images, setImages] = useState<BaseMedia[]>([]);
-  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext)
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
   function FileUploader() {
     const hiddenFileInput = useRef<HTMLInputElement>(null);
     return (
@@ -35,9 +40,11 @@ export default function Library() {
           multiple={true}
           onChange={async (e) => {
             if (!e.target.files) return;
-            Array.from(e.target.files).forEach(file => {
-              if (file.type.includes('image')) new ImageMedia(file, addToImages);
-              else if (file.type.includes('video')) new VideoMedia(file, addToImages);
+            Array.from(e.target.files).forEach((file) => {
+              if (file.type.includes("image"))
+                new ImageMedia(file, addToImages);
+              else if (file.type.includes("video"))
+                new VideoMedia(file, addToImages);
             });
           }}
         />
@@ -55,9 +62,15 @@ export default function Library() {
     setImages((images) => [...images, img]);
   }
 
-  function addImageToTimeline(img: ImageMedia) {
-    const timelineImage = new ImageMediaTimeline(img);
-    setTimelineMedia([...timelineMedia, timelineImage]);
+  // BUG: RERENDERS DUE TO TIMELINEMEDIA BEING STATE VARIABLE WITHIN LIBRARY
+  function addMediaToTimeline(media: BaseMedia) {
+    if (media instanceof ImageMedia) {
+      const timelineImage = new ImageMediaTimeline(media);
+      setTimelineMedia([...timelineMedia, timelineImage]);
+    } else if (media instanceof VideoMedia) {
+      const timelineVideo = new VideoMediaTimeline(media);
+      setTimelineMedia([...timelineMedia, timelineVideo]);
+    }
   }
 
   function Sections() {
@@ -93,7 +106,7 @@ export default function Library() {
               <Wrap spacing="15px">
                 {images.map((image, index) => (
                   <WrapItem key={index}>
-                    <div onClick={() => addImageToTimeline(image)}>
+                    <div onClick={() => addMediaToTimeline(image)}>
                       <MediaCard img={image} />
                     </div>
                   </WrapItem>

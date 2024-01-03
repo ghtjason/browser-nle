@@ -57,29 +57,37 @@ export default function Player(_props: IProps) {
         selection: false,
       };
       const canvas = new fabric.Canvas(canvasEl.current, options);
-      initCanvas(canvas);
-      // make the fabric.Canvas instance available to your app
+      // initCanvas(canvas);
+      // fabric.util.requestAnimFrame(function render() {
+      //   canvas.renderAll();
+      //   fabric.util.requestAnimFrame(render);
+      // });
+
       return () => {
         canvas.dispose();
       };
     }, []);
 
     const container = document.getElementById("video");
+
     if (container && canvas && canvas.getWidth() == 1920) {
       for (const i of reversedMedia) {
-        const url = i.media.objectURL;
-        fabric.Image.fromURL(url, function (oImg) {
-          i.fabricObject = oImg;
-          oImg.top = i.y;
-          oImg.left = i.x;
-          oImg.angle = i.angle;
-          oImg.scaleX = i.scaleX;
-          oImg.scaleY = i.scaleY;
-          oImg.on("selected", () => {
-            selectedHandler(i);
-          });
-          canvas.add(oImg);
+        const fabricImage = new fabric.Image(i.media.element, {
+          top: i.y,
+          left: i.x,
+          angle: i.angle,
+          scaleX: i.scaleX,
+          scaleY: i.scaleY,
+          objectCaching: false,
         });
+        fabricImage.on("selected", () => {
+          selectedHandler(i);
+        });
+        i.fabricObject = fabricImage;
+        canvas.add(fabricImage);
+        if (i.media.element instanceof HTMLVideoElement) {
+          i.media.element.play();
+        }
       }
       autoScaleCanvas(canvas);
       canvas.on("object:modified", (e) =>

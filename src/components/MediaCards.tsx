@@ -34,6 +34,7 @@ export function TimelineMediaCard(props: IProps) {
   function handleClick(media: MediaTimeline) {
     selectCard(media)
     if (canvas) {
+      console.log('selecting')
       canvas.setActiveObject(media.fabricObject!)
       canvas.renderAll()
     }

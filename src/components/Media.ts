@@ -5,6 +5,7 @@ export abstract class BaseMedia {
   abstract thumbnailURL: string;
   abstract width: number;
   abstract height: number;
+  abstract element: HTMLImageElement | HTMLVideoElement
 
   constructor(file: File) {
     this.name = file.name;
@@ -13,7 +14,11 @@ export abstract class BaseMedia {
   }
 }
 
-function drawThumbnail(media : CanvasImageSource, mediaObject: BaseMedia, updateArray: (arg0: BaseMedia) => void) {
+function drawThumbnail(
+  media: CanvasImageSource,
+  mediaObject: BaseMedia,
+  updateArray: (arg0: BaseMedia) => void
+) {
   const canvas = document.createElement("canvas");
   canvas.width = 1280;
   canvas.height = 720;
@@ -38,14 +43,16 @@ export class ImageMedia extends BaseMedia {
   thumbnailURL!: string;
   width!: number;
   height!: number;
+  element!: HTMLImageElement
 
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
     super(file);
     const img = new Image();
     img.onload = () => {
+      this.element = img
       this.width = img.naturalWidth;
       this.height = img.naturalHeight;
-      drawThumbnail(img, this, updateArray)
+      drawThumbnail(img, this, updateArray);
     };
     img.src = this.objectURL;
   }
@@ -55,22 +62,22 @@ export class VideoMedia extends BaseMedia {
   thumbnailURL!: string;
   width!: number;
   height!: number;
-  duration!: number
+  duration!: number;
+  element!: HTMLVideoElement
 
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
     super(file);
-    const video = document.createElement('video')
-    video.addEventListener('loadeddata', () => {
+    const video = document.createElement("video");
+    video.addEventListener("loadeddata", () => {
+      this.element = video
       this.width = video.videoWidth;
       this.height = video.videoHeight;
       this.duration = video.duration;
-      drawThumbnail(video, this, updateArray)
-    })
+      drawThumbnail(video, this, updateArray);
+    });
     video.src = this.objectURL;
   }
 }
-
-
 
 export abstract class MediaTimeline {
   start: number = 0;
@@ -93,5 +100,15 @@ export class ImageMediaTimeline extends MediaTimeline {
   constructor(img: ImageMedia) {
     super();
     this.media = img;
+  }
+}
+
+export class VideoMediaTimeline extends MediaTimeline {
+  end: number;
+  media: VideoMedia;
+  constructor(vid: VideoMedia) {
+    super();
+    this.media = vid;
+    this.end = vid.duration * 1000;
   }
 }
