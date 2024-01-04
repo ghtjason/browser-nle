@@ -1,13 +1,46 @@
+import { IconTriangleInverted } from "@tabler/icons-react";
 import { SelectedCardContext } from "../context/SelectedCardContext";
+import { PlayContext, TimeContext } from "../context/TimeContext";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
 import { TimelineMediaCard } from "./MediaCards";
-import { Stack } from "@chakra-ui/react";
+import { Box, Icon, Stack } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 
-
 export default function Timeline() {
-  const selectedCard = useContext(SelectedCardContext)
-  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext)
+  const selectedCard = useContext(SelectedCardContext);
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
+  const [, handlePause, , , , setElapsedTime] = useContext(PlayContext);
+  function Playhead() {
+    const elapsedTime = useContext(TimeContext);
+
+    const offset = Math.floor(5 + elapsedTime / 10);
+    // why does defining ml within icon cause rendering bugs
+    const boxStyle = { marginLeft: offset };
+    const color = "#E53E3E";
+    return (
+      <Stack
+        position="absolute"
+        style={boxStyle}
+        mt="6px"
+        height="100%"
+        spacing={0}
+        pointerEvents="none"
+        zIndex={2}
+      >
+        <Icon as={IconTriangleInverted} color={color} boxSize="17px" />
+        <div
+          style={{
+            width: "1px",
+            backgroundColor: color,
+            height: "100%",
+            margin: "auto",
+            marginTop: 0,
+          }}
+        ></div>
+      </Stack>
+    );
+  }
+
   useEffect(() => {
     function DeleteCard() {
       if (selectedCard) {
@@ -27,18 +60,62 @@ export default function Timeline() {
     };
   }, [selectedCard, setTimelineMedia, timelineMedia]);
 
+  const snapTimes = new Set<number>();
+  for (const i of timelineMedia) {
+    snapTimes.add(i.start);
+    snapTimes.add(i.end);
+  }
+
+  function snapToEdge(n: number) {
+    for (const snap of snapTimes) {
+      if (Math.abs(n - snap) < 100) return snap;
+    }
+    return n;
+  }
+
+  function handleClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const time = (e.pageX - 13) * 10;
+    handlePause();
+    setElapsedTime(snapToEdge(time));
+  }
+
+  // function handleDrag(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  //   console.log(e.pageX);
+  //   const time = (e.pageX - 13) * 10;
+  //   handlePause();
+  //   setElapsedTime(time);
+  // }
+
   function RenderImageCards() {
     return (
-      <Stack overflowY="auto" padding="10px 10px" height='100%'>
-        {timelineMedia.map((media, index) => (
-          <TimelineMediaCard
-            media={media}
-            height={75}
-            track={index}
-            key={index}
-          />
-        ))}
-      </Stack>
+      <>
+        <Box
+          position="absolute"
+          height="100%"
+          width="100%"
+          onClick={(e) => handleClick(e)}
+          // draggable={true}
+          // onmou={(e) => handleDrag(e)}
+          zIndex={0}
+        />
+
+        <Playhead />
+        <Stack
+          overflowY="auto"
+          padding="26px 14px"
+          height="100%"
+          pointerEvents="none"
+        >
+          {timelineMedia.map((media, index) => (
+            <TimelineMediaCard
+              media={media}
+              height={75}
+              track={index}
+              key={index}
+            />
+          ))}
+        </Stack>
+      </>
     );
   }
 

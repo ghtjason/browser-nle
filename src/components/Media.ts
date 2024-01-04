@@ -69,6 +69,8 @@ export class VideoMedia extends BaseMedia {
     super(file);
     const video = document.createElement("video");
     video.addEventListener("loadeddata", () => {
+      video.width = video.videoWidth
+      video.height = video.videoHeight
       this.element = video
       this.width = video.videoWidth;
       this.height = video.videoHeight;

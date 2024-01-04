@@ -4,6 +4,8 @@ import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
 import { SelectCardContext } from "../context/SelectedCardContext";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
+import { Center } from "@chakra-ui/react";
+import { TimeContext } from "../context/TimeContext";
 
 interface IProps {
   key: number;
@@ -15,12 +17,33 @@ export default function Player(_props: IProps) {
   const [timelineMedia] = useContext(TimelineMediaContext);
   const reversedMedia = timelineMedia.slice().reverse();
   const selectCard = useContext(SelectCardContext);
+  
+  function HandleTime() {
+    const elapsedTime = useContext(TimeContext);
+    useEffect(() => {
+            for (const i of timelineMedia) {
+        if (!i.fabricObject) break;
+        if (i.fabricObject.visible) {
+          if (elapsedTime >= i.end || elapsedTime < i.start)
+            i.fabricObject.visible = false;
+        } else {
+          if (i.start <= elapsedTime && i.end > elapsedTime)
+            i.fabricObject.visible = true;
+        }
+      }
+    }, [elapsedTime]);
+    return <></>;
+  }
+
   function autoScaleCanvas(canvas: fabric.Canvas | null) {
     if (canvas) {
       canvas.setBackgroundColor("black", () => {});
-      const container = document.getElementById("video");
+      const container = document.getElementById("playerContainer");
       if (container && canvas.getWidth() == 1920) {
-        const scale = container.offsetWidth / 1920;
+        const scale = Math.min(
+          container.offsetWidth / 1920,
+          container.offsetHeight / 1080
+        );
         canvas.setZoom(scale);
         canvas.setHeight(canvas.getHeight() * scale);
         canvas.setWidth(canvas.getWidth() * scale);
@@ -42,7 +65,6 @@ export default function Player(_props: IProps) {
 
   function selectedHandler(mediaObject: MediaTimeline) {
     selectCard(mediaObject);
-    console.log("selected!!!z");
   }
 
   function CanvasApp() {
@@ -57,18 +79,20 @@ export default function Player(_props: IProps) {
         selection: false,
       };
       const canvas = new fabric.Canvas(canvasEl.current, options);
-      // initCanvas(canvas);
-      // fabric.util.requestAnimFrame(function render() {
-      //   canvas.renderAll();
-      //   fabric.util.requestAnimFrame(render);
-      // });
+      initCanvas(canvas);
+      fabric.util.requestAnimFrame(function render() {
+        const ctx = canvas.getContext();
+        if (!ctx) return;
+        canvas.renderAll();
+        fabric.util.requestAnimFrame(render);
+      });
 
       return () => {
         canvas.dispose();
       };
     }, []);
 
-    const container = document.getElementById("video");
+    const container = document.getElementById("playerContainer");
 
     if (container && canvas && canvas.getWidth() == 1920) {
       for (const i of reversedMedia) {
@@ -102,8 +126,18 @@ export default function Player(_props: IProps) {
   }
 
   return (
-    <div id="video" style={{ height: "100%", width: "100%" }}>
-      <CanvasApp />
-    </div>
+    <Center
+      position="absolute"
+      bottom="40px"
+      top="0"
+      width="100%"
+      backgroundColor="#171923"
+      id="playerContainer"
+    >
+      <div id="player">
+        <CanvasApp />
+        <HandleTime />
+      </div>
+    </Center>
   );
 }
