@@ -62,7 +62,7 @@ export default function Player(_props: IProps) {
             };
             i.media.element.pause();
             i.media.element.currentTime =
-              (elapsedTime - i.start + i.videoStart) / 1000;
+              (elapsedTime - i.start + i.offsetStart) / 1000;
           } else i.fabricObject.visible = true;
         }
         if (canvas && canvas.getContext()) canvas.renderAll();

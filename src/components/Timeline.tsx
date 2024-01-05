@@ -1,15 +1,18 @@
 import { IconTriangleInverted } from "@tabler/icons-react";
 import { SelectedCardContext } from "../context/SelectedCardContext";
 import { PlayContext, TimeContext } from "../context/TimeContext";
-import { TimelineMediaContext } from "../context/TimelineMediaContext";
+import {
+  SnapTimesContext,
+  TimelineMediaContext,
+} from "../context/TimelineMediaContext";
 import { TimelineMediaCard } from "./MediaCards";
 import { Box, Icon, Stack } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 
 export default function Timeline() {
   const selectedCard = useContext(SelectedCardContext);
-  const [timelineMedia, setTimelineMedia, snapTimes] =
-    useContext(TimelineMediaContext);
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
+  const [snapTimes] = useContext(SnapTimesContext);
   const [, handlePause, handleResume, , isPlaying, setElapsedTime] =
     useContext(PlayContext);
   function Playhead() {
@@ -69,7 +72,14 @@ export default function Timeline() {
     return () => {
       document.removeEventListener("keydown", processKey);
     };
-  }, [handlePause, handleResume, isPlaying, selectedCard, setTimelineMedia, timelineMedia]);
+  }, [
+    handlePause,
+    handleResume,
+    isPlaying,
+    selectedCard,
+    setTimelineMedia,
+    timelineMedia,
+  ]);
 
   function snapToEdge(n: number) {
     for (const snap of snapTimes) {
@@ -94,22 +104,12 @@ export default function Timeline() {
   function RenderImageCards() {
     return (
       <>
-        <Box
-          position="absolute"
-          height="100%"
-          width="100%"
-          onClick={(e) => handleClick(e)}
-          // draggable={true}
-          // onmou={(e) => handleDrag(e)}
-          zIndex={0}
-        />
-
         <Playhead />
         <Stack
           overflowY="auto"
           padding="26px 14px"
           height="100%"
-          pointerEvents="none"
+          onClick={(e) => handleClick(e)}
         >
           {timelineMedia.map((media, index) => (
             <TimelineMediaCard

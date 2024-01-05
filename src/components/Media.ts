@@ -108,13 +108,11 @@ export class ImageMediaTimeline extends MediaTimeline {
 export class VideoMediaTimeline extends MediaTimeline {
   end: number;
   media: VideoMedia;
-  videoStart: number;
-  videoEnd: number;
+  offsetStart: number;
   constructor(vid: VideoMedia) {
     super();
     this.media = vid;
     this.end = vid.duration * 1000;
-    this.videoStart = 0;
-    this.videoEnd = vid.duration * 1000;
+    this.offsetStart = 0;
   }
 }
