@@ -32,6 +32,7 @@ export const TimeContextProvider = (props: {
   const [isPlaying, setIsPlaying] = useState(false);
   const [maxTime, setMaxTime] = useState<number>(60 * 1000);
 
+  
   const timerRef = useRef<Timer | null>(null);
   const callback = useCallback(() => {
     if (timerRef.current) {

@@ -62,7 +62,6 @@ export default function Library() {
     setImages((images) => [...images, img]);
   }
 
-  // BUG: RERENDERS DUE TO TIMELINEMEDIA BEING STATE VARIABLE WITHIN LIBRARY
   function addMediaToTimeline(media: BaseMedia) {
     if (media instanceof ImageMedia) {
       const timelineImage = new ImageMediaTimeline(media);

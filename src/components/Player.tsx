@@ -26,12 +26,12 @@ export default function Player(_props: IProps) {
 
     for (const i of timelineMedia) {
       if (!i.fabricObject) break;
+      // console.log(i.media.objectURL);
       if (isPlaying) {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
           if (i.media.element instanceof HTMLVideoElement) {
             i.media.element.pause(); // assume time has been seeked to correct location
-            i.media.element.currentTime = 0;
           }
         } else {
           i.fabricObject.visible = true;
@@ -40,13 +40,17 @@ export default function Player(_props: IProps) {
             i.media.element.paused
           ) {
             i.media.element.play(); // assume time has been seeked to correct location
+            console.log("started playback");
           }
         }
       } else {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
-          console.log("false");
           if (i.media.element instanceof HTMLVideoElement) {
+            i.media.element.onseeked = () => {
+              i.fabricObject!.visible = false;
+              if (canvas && canvas.getContext()) canvas.renderAll();
+            };
             i.media.element.pause();
             i.media.element.currentTime = 0;
           }
@@ -54,7 +58,7 @@ export default function Player(_props: IProps) {
           if (i instanceof VideoMediaTimeline) {
             i.media.element.onseeked = () => {
               i.fabricObject!.visible = true;
-              if (canvas) canvas.renderAll();
+              if (canvas && canvas.getContext()) canvas.renderAll();
             };
             i.media.element.pause();
             i.media.element.currentTime =

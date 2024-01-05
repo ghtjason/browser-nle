@@ -9,7 +9,6 @@ import { SelectedCardContextProvider } from "./context/SelectedCardContext";
 import { TimelineMediaContextProvider } from "./context/TimelineMediaContext";
 import { TimeContextProvider } from "./context/TimeContext";
 import Timecode from "./components/Timecode";
-import { Box, Stack } from "@chakra-ui/react";
 
 function App() {
   const [playerKey, setPlayerKey] = useState(0);
