@@ -30,7 +30,7 @@ export const TimeContextProvider = (props: {
 }): JSX.Element => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [maxTime, setMaxTime] = useState<number>(5000);
+  const [maxTime, setMaxTime] = useState<number>(60 * 1000);
 
   const timerRef = useRef<Timer | null>(null);
   const callback = useCallback(() => {
@@ -53,7 +53,7 @@ export const TimeContextProvider = (props: {
   };
 
   const handleResume = () => {
-    elapsedTime == 0 ? timer.start() : timer.resume();
+    timer.start(Date.now() - elapsedTime);
     setIsPlaying(true);
   };
 

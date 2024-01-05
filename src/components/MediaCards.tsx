@@ -35,7 +35,7 @@ export function TimelineMediaCard(props: IProps) {
     selectCard(media)
     if (canvas && media.fabricObject!.visible) {
       canvas.setActiveObject(media.fabricObject!)
-      canvas.renderAll()
+      canvas.requestRenderAll()
     }
   }
 

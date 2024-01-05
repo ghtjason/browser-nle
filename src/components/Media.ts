@@ -5,7 +5,7 @@ export abstract class BaseMedia {
   abstract thumbnailURL: string;
   abstract width: number;
   abstract height: number;
-  abstract element: HTMLImageElement | HTMLVideoElement
+  abstract element: HTMLImageElement | HTMLVideoElement;
 
   constructor(file: File) {
     this.name = file.name;
@@ -43,13 +43,13 @@ export class ImageMedia extends BaseMedia {
   thumbnailURL!: string;
   width!: number;
   height!: number;
-  element!: HTMLImageElement
+  element!: HTMLImageElement;
 
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
     super(file);
     const img = new Image();
     img.onload = () => {
-      this.element = img
+      this.element = img;
       this.width = img.naturalWidth;
       this.height = img.naturalHeight;
       drawThumbnail(img, this, updateArray);
@@ -63,15 +63,15 @@ export class VideoMedia extends BaseMedia {
   width!: number;
   height!: number;
   duration!: number;
-  element!: HTMLVideoElement
+  element!: HTMLVideoElement;
 
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
     super(file);
     const video = document.createElement("video");
     video.addEventListener("loadeddata", () => {
-      video.width = video.videoWidth
-      video.height = video.videoHeight
-      this.element = video
+      video.width = video.videoWidth;
+      video.height = video.videoHeight;
+      this.element = video;
       this.width = video.videoWidth;
       this.height = video.videoHeight;
       this.duration = video.duration;
@@ -108,9 +108,13 @@ export class ImageMediaTimeline extends MediaTimeline {
 export class VideoMediaTimeline extends MediaTimeline {
   end: number;
   media: VideoMedia;
+  videoStart: number;
+  videoEnd: number;
   constructor(vid: VideoMedia) {
     super();
     this.media = vid;
     this.end = vid.duration * 1000;
+    this.videoStart = 0;
+    this.videoEnd = vid.duration * 1000;
   }
 }

@@ -8,15 +8,18 @@ import { useContext, useEffect } from "react";
 
 export default function Timeline() {
   const selectedCard = useContext(SelectedCardContext);
-  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
-  const [, handlePause, , , , setElapsedTime] = useContext(PlayContext);
+  const [timelineMedia, setTimelineMedia, snapTimes] =
+    useContext(TimelineMediaContext);
+  const [, handlePause, handleResume, , isPlaying, setElapsedTime] =
+    useContext(PlayContext);
   function Playhead() {
     const elapsedTime = useContext(TimeContext);
 
     const offset = Math.floor(5 + elapsedTime / 10);
     // why does defining ml within icon cause rendering bugs
     const boxStyle = { marginLeft: offset };
-    const color = "#E53E3E";
+    const color =
+      !isPlaying && snapTimes.has(elapsedTime) ? "#ECC94B" : "#E53E3E";
     return (
       <Stack
         position="absolute"
@@ -52,19 +55,21 @@ export default function Timeline() {
 
     function processKey(e: globalThis.KeyboardEvent) {
       if (e.repeat) return;
-      if (e.key === "Delete" || e.key === "Backspace") DeleteCard();
+      switch (e.key) {
+        case "Delete":
+        case "Backspace":
+          DeleteCard();
+          break;
+        case " ":
+          isPlaying ? handlePause() : handleResume();
+          break;
+      }
     }
     document.addEventListener("keydown", processKey);
     return () => {
       document.removeEventListener("keydown", processKey);
     };
-  }, [selectedCard, setTimelineMedia, timelineMedia]);
-
-  const snapTimes = new Set<number>();
-  for (const i of timelineMedia) {
-    snapTimes.add(i.start);
-    snapTimes.add(i.end);
-  }
+  }, [handlePause, handleResume, isPlaying, selectedCard, setTimelineMedia, timelineMedia]);
 
   function snapToEdge(n: number) {
     for (const snap of snapTimes) {

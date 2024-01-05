@@ -1,11 +1,11 @@
-import { useContext, useEffect, useRef } from "react";
-import { MediaTimeline } from "./Media";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MediaTimeline, VideoMediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
 import { SelectCardContext } from "../context/SelectedCardContext";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
 import { Center } from "@chakra-ui/react";
-import { TimeContext } from "../context/TimeContext";
+import { PlayContext, TimeContext } from "../context/TimeContext";
 
 interface IProps {
   key: number;
@@ -17,21 +17,66 @@ export default function Player(_props: IProps) {
   const [timelineMedia] = useContext(TimelineMediaContext);
   const reversedMedia = timelineMedia.slice().reverse();
   const selectCard = useContext(SelectCardContext);
-  
+
   function HandleTime() {
     const elapsedTime = useContext(TimeContext);
-    useEffect(() => {
-            for (const i of timelineMedia) {
-        if (!i.fabricObject) break;
-        if (i.fabricObject.visible) {
-          if (elapsedTime >= i.end || elapsedTime < i.start)
-            i.fabricObject.visible = false;
+    const [timelineMedia] = useContext(TimelineMediaContext);
+    const [, , , , isPlaying] = useContext(PlayContext);
+    const [canvas] = useContext(FabricContext);
+
+    for (const i of timelineMedia) {
+      if (!i.fabricObject) break;
+      if (isPlaying) {
+        if (elapsedTime >= i.end || elapsedTime < i.start) {
+          i.fabricObject.visible = false;
+          if (i.media.element instanceof HTMLVideoElement) {
+            i.media.element.pause(); // assume time has been seeked to correct location
+            i.media.element.currentTime = 0;
+          }
         } else {
-          if (i.start <= elapsedTime && i.end > elapsedTime)
-            i.fabricObject.visible = true;
+          i.fabricObject.visible = true;
+          if (
+            i.media.element instanceof HTMLVideoElement &&
+            i.media.element.paused
+          ) {
+            i.media.element.play(); // assume time has been seeked to correct location
+          }
         }
+      } else {
+        if (elapsedTime >= i.end || elapsedTime < i.start) {
+          i.fabricObject.visible = false;
+          console.log("false");
+          if (i.media.element instanceof HTMLVideoElement) {
+            i.media.element.pause();
+            i.media.element.currentTime = 0;
+          }
+        } else {
+          if (i instanceof VideoMediaTimeline) {
+            i.media.element.onseeked = () => {
+              i.fabricObject!.visible = true;
+              if (canvas) canvas.renderAll();
+            };
+            i.media.element.pause();
+            i.media.element.currentTime =
+              (elapsedTime - i.start + i.videoStart) / 1000;
+          } else i.fabricObject.visible = true;
+        }
+        if (canvas && canvas.getContext()) canvas.renderAll();
       }
-    }, [elapsedTime]);
+    }
+    useEffect(() => {
+      let recurse = true;
+      function render() {
+        if (!canvas || !canvas.getContext()) return;
+        canvas.renderAll();
+        if (!recurse || !isPlaying) return;
+        fabric.util.requestAnimFrame(render);
+      }
+      render();
+      return () => {
+        recurse = false;
+      };
+    }, [canvas, isPlaying]);
     return <></>;
   }
 
@@ -80,12 +125,6 @@ export default function Player(_props: IProps) {
       };
       const canvas = new fabric.Canvas(canvasEl.current, options);
       initCanvas(canvas);
-      fabric.util.requestAnimFrame(function render() {
-        const ctx = canvas.getContext();
-        if (!ctx) return;
-        canvas.renderAll();
-        fabric.util.requestAnimFrame(render);
-      });
 
       return () => {
         canvas.dispose();
@@ -109,9 +148,6 @@ export default function Player(_props: IProps) {
         });
         i.fabricObject = fabricImage;
         canvas.add(fabricImage);
-        if (i.media.element instanceof HTMLVideoElement) {
-          i.media.element.play();
-        }
       }
       autoScaleCanvas(canvas);
       canvas.on("object:modified", (e) =>
