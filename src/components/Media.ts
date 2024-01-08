@@ -68,15 +68,19 @@ export class VideoMedia extends BaseMedia {
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
     super(file);
     const video = document.createElement("video");
-    video.addEventListener("loadeddata", () => {
-      video.width = video.videoWidth;
-      video.height = video.videoHeight;
-      this.element = video;
-      this.width = video.videoWidth;
-      this.height = video.videoHeight;
-      this.duration = video.duration;
-      drawThumbnail(video, this, updateArray);
-    });
+    video.addEventListener(
+      "loadeddata",
+      () => {
+        video.width = video.videoWidth;
+        video.height = video.videoHeight;
+        this.element = video;
+        this.width = video.videoWidth;
+        this.height = video.videoHeight;
+        this.duration = video.duration;
+        drawThumbnail(video, this, updateArray);
+      },
+      { once: true }
+    );
     video.src = this.objectURL;
   }
 }

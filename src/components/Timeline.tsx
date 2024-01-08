@@ -6,7 +6,7 @@ import {
   TimelineMediaContext,
 } from "../context/TimelineMediaContext";
 import { TimelineMediaCard } from "./MediaCards";
-import { Box, Icon, Stack } from "@chakra-ui/react";
+import { Icon, Stack } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 
 export default function Timeline() {
@@ -104,7 +104,6 @@ export default function Timeline() {
   function RenderImageCards() {
     return (
       <>
-        <Playhead />
         <Stack
           overflowY="auto"
           padding="26px 14px"
@@ -124,5 +123,10 @@ export default function Timeline() {
     );
   }
 
-  return <RenderImageCards />;
+  return (
+    <>
+      <Playhead />
+      <RenderImageCards />
+    </>
+  );
 }

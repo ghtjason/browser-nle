@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { MediaTimeline, VideoMediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
@@ -39,8 +39,9 @@ export default function Player(_props: IProps) {
             i.media.element instanceof HTMLVideoElement &&
             i.media.element.paused
           ) {
+            i.media.element.oncanplaythrough = () => {
+            }
             i.media.element.play(); // assume time has been seeked to correct location
-            console.log("started playback");
           }
         }
       } else {
@@ -133,6 +134,7 @@ export default function Player(_props: IProps) {
       return () => {
         canvas.dispose();
       };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const container = document.getElementById("playerContainer");
