@@ -39,6 +39,7 @@ export const TimeContextProvider = (props: {
       if (timerRef.current.getElapsedRunningTime() > maxTime) handleReset();
       else setElapsedTime(timerRef.current.getElapsedRunningTime());
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const timer = useTimer({ delay: 10 }, callback);
   timerRef.current = timer;
@@ -48,7 +49,7 @@ export const TimeContextProvider = (props: {
     setIsPlaying(true);
   };
 
-  const handlePause = () => {
+  const handlePause = async () => {
     timer.pause();
     setIsPlaying(false);
   };

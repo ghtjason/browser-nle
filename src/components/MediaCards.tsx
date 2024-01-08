@@ -1,4 +1,4 @@
-import { Heading, Image, Box } from "@chakra-ui/react";
+import { Heading, Image, Box, Icon } from "@chakra-ui/react";
 import { BaseMedia, MediaTimeline, VideoMediaTimeline } from "./Media";
 import { useCallback, useContext, useState } from "react";
 import {
@@ -6,9 +6,9 @@ import {
   SelectedCardContext,
 } from "../context/SelectedCardContext";
 import { FabricContext } from "../context/FabricContext";
-import { NumberSize, Resizable } from "re-resizable";
-import { Direction } from "re-resizable/lib/resizer";
 import { SnapTimesContext } from "../context/TimelineMediaContext";
+import { PlayContext } from "../context/TimeContext";
+import { IconDotsVertical } from "@tabler/icons-react";
 
 export default function MediaCard({ img }: { img: BaseMedia }) {
   return (
@@ -31,12 +31,14 @@ export function TimelineMediaCard(props: IProps) {
   const selectCard = useContext(SelectCardContext);
   const selectedCard = useContext(SelectedCardContext);
   const [canvas] = useContext(FabricContext);
+  const [, , , , isPlaying] = useContext(PlayContext);
   const duration = props.media.end - props.media.start;
   const width = duration / 10;
   // const offset = props.media.start / 10;
   const outline = props.media === selectedCard ? "#ECC94B" : "#2D3748";
   const [, refreshSnapTimes] = useContext(SnapTimesContext);
   const [offset, setOffset] = useState(props.media.start / 10);
+
   if (offset != props.media.start / 10) setOffset(props.media.start / 10); // weird workaround for mouse move rendering
 
   function handleClick() {
@@ -47,105 +49,136 @@ export function TimelineMediaCard(props: IProps) {
     }
   }
 
-  const enableDirs = {
-    top: false,
-    right: true,
-    bottom: false,
-    left: true,
-    topRight: false,
-    bottomRight: false,
-    bottomLeft: false,
-    topLeft: false,
-  };
+  const handleMouseDown = useCallback(() => {
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      refreshSnapTimes();
+    };
 
-  const defaultSize = {
-    width: width,
-    height: props.height,
-  };
+    const handleMouseMove = (e: MouseEvent) => {
+      const delta = Math.max(-props.media.start, e.movementX * 10);
+      props.media.start += delta;
+      props.media.end += delta;
+      setOffset(offset + delta / 10);
+      // weird, should only be used to rerender component but breaks otherwise?????
+    };
 
-  function handleResizeStop(direction: Direction, delta: NumberSize) {
-    if (direction == "right") {
+    if (isPlaying) return;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp, { once: true });
+  }, [isPlaying, offset, props.media, refreshSnapTimes]);
+
+  const handleDragRight = useCallback(() => {
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.body.style.cursor = "default";
+      refreshSnapTimes();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      let delta = e.movementX * 10;
       if (props.media instanceof VideoMediaTimeline) {
-        const maxExtendEnd =
+        const maxDelta =
           props.media.media.duration * 1000 -
           props.media.offsetStart -
-          duration; // should always be positive
-        props.media.end += Math.min(maxExtendEnd, delta.width * 10);
-      } else props.media.end += delta.width * 10;
-    } else if (direction == "left") {
+          (props.media.end - props.media.start);
+        delta = Math.min(maxDelta, delta);
+        props.media.end += delta;
+      } else props.media.end += delta;
+      if (props.media.end < props.media.start + 100) {
+        // min 100ms duration
+        props.media.end = props.media.start + 100;
+        setOffset(100);
+      } else setOffset(offset + delta / 10);
+      // weird, should only be used to rerender component but breaks otherwise?????
+    };
+
+    if (isPlaying) return;
+    document.body.style.cursor = "e-resize";
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp, { once: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPlaying]);
+
+  const handleDragLeft = useCallback(() => {
+    const handleMouseUp = () => {
+      document.body.style.cursor = "default";
+      document.removeEventListener("mousemove", handleMouseMove);
+      refreshSnapTimes();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      let delta = Math.max(-props.media.start, e.movementX * 10); // max extension to 0
+      const maxDelta = props.media.end - props.media.start - 100;
+      delta = Math.min(delta, maxDelta);
       if (props.media instanceof VideoMediaTimeline) {
-        const maxExtendStart = props.media.offsetStart;
-        props.media.start -= Math.min(maxExtendStart, delta.width * 10);
-        props.media.offsetStart -= Math.min(maxExtendStart, delta.width * 10);
-      } else props.media.start -= Math.min(props.media.start, delta.width * 10);
-    }
-    refreshSnapTimes();
-  }
+        const minDelta = -props.media.offsetStart;
+        delta = Math.max(minDelta, delta);
+        props.media.offsetStart += delta;
+        props.media.start += delta;
+      }
+      else props.media.start += delta;
+      setOffset(offset + delta);
+      // weird, should only be used to rerender component but breaks otherwise?????
+    };
 
-  // function handleResize(
-  //   event: MouseEvent | TouchEvent,
-  //   direction: Direction,
-  //   refToElement: HTMLElement,
-  //   delta: NumberSize
-  // ) {
-  //   console.log(delta)
-  // }
-
-  const handleMouseDown = useCallback(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleMouseUp = useCallback(() => {
-    window.removeEventListener("mousemove", handleMouseMove);
-    refreshSnapTimes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleMouseMove = (e: MouseEvent) => {
-    const delta = Math.max(-props.media.start, e.movementX * 10);
-    props.media.start += delta;
-    props.media.end += delta;
-    setOffset(offset + delta); // weird, apparently only used to rerender component?????
-  };
+    if (isPlaying) return;
+    document.body.style.cursor = "e-resize";
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp, { once: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPlaying]);
 
   return (
-    <Box
-      minWidth="100%"
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
+    <div
+      style={{
+        marginLeft: offset,
+        width: width,
+        position: "relative",
+        // cursor: moveCursor,
+      }}
     >
-      <Resizable
-        enable={enableDirs}
-        defaultSize={defaultSize}
-        onResizeStop={(_e, dir, _ref, d) => handleResizeStop(dir, d)}
-        style={{
-          marginLeft: props.media.start / 10,
-        }}
+      <Icon
+        as={IconDotsVertical}
+        position="absolute"
+        height="100%"
+        right="-14px"
+        aria-label={"extend"}
+        paddingRight="2px"
+        onMouseDown={handleDragRight}
+        cursor="e-resize"
+      />
+      <Icon
+        as={IconDotsVertical}
+        position="absolute"
+        height="100%"
+        left="-14px"
+        aria-label={"extend"}
+        paddingLeft="2px"
+        onMouseDown={handleDragLeft}
+        cursor="w-resize"
+      />
+
+      <Box
+        height={props.height}
+        borderRadius="lg"
+        overflow="hidden"
+        borderColor={outline}
+        borderWidth="3px"
+        onClick={handleClick}
+        pointerEvents="auto"
+        zIndex={1}
+        onMouseDown={handleMouseDown}
       >
-        <div>
-          <Box
-            width={width}
-            height={props.height}
-            borderRadius="lg"
-            overflow="hidden"
-            borderColor={outline}
-            borderWidth="3px"
-            onClick={handleClick}
-            flexShrink="0"
-            pointerEvents="auto"
-            zIndex={1}
-          >
-            <Image
-              src={props.media.media.thumbnailURL}
-              alt={props.media.media.name}
-              minHeight="100%"
-              minWidth="100%"
-              draggable={false}
-            />
-          </Box>
-        </div>
-      </Resizable>
-    </Box>
+        <Image
+          src={props.media.media.thumbnailURL}
+          alt={props.media.media.name}
+          minHeight="100%"
+          minWidth="100%"
+          draggable={false}
+          userSelect="none"
+        />
+      </Box>
+    </div>
   );
 }

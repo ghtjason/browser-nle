@@ -25,8 +25,10 @@ export const TimelineMediaContextProvider = (props: {
       snapTimes.add(i.start);
       snapTimes.add(i.end);
     }
+    console.log('refreshed')
   }
   refreshSnapTimes();
+
   return (
     <TimelineMediaContext.Provider value={[timelineMedia, setTimelineMedia]}>
       <SnapTimesContext.Provider value={[snapTimes, refreshSnapTimes]}>

@@ -30,24 +30,20 @@ export default function Player(_props: IProps) {
       if (isPlaying) {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
-          if (i.media.element instanceof HTMLVideoElement) {
-            i.media.element.pause(); // assume time has been seeked to correct location
+          if (i instanceof VideoMediaTimeline) {
+            i.media.element.pause();
+            i.media.element.currentTime = i.offsetStart / 1000;
           }
         } else {
           i.fabricObject.visible = true;
-          if (
-            i.media.element instanceof HTMLVideoElement &&
-            i.media.element.paused
-          ) {
-            i.media.element.oncanplaythrough = () => {
-            }
+          if (i instanceof VideoMediaTimeline && i.media.element.paused) {
             i.media.element.play(); // assume time has been seeked to correct location
           }
         }
       } else {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
-          if (i.media.element instanceof HTMLVideoElement) {
+          if (i instanceof VideoMediaTimeline) {
             i.media.element.onseeked = () => {
               i.fabricObject!.visible = false;
               if (canvas && canvas.getContext()) canvas.renderAll();
@@ -134,7 +130,7 @@ export default function Player(_props: IProps) {
       return () => {
         canvas.dispose();
       };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const container = document.getElementById("playerContainer");
