@@ -6,7 +6,11 @@ import {
   SelectedCardContext,
 } from "../context/SelectedCardContext";
 import { FabricContext } from "../context/FabricContext";
-import { SnapTimesContext } from "../context/TimelineMediaContext";
+import {
+  MovedTrackContext,
+  SnapTimesContext,
+  TimelineMediaContext,
+} from "../context/TimelineMediaContext";
 import { PlayContext } from "../context/TimeContext";
 import { IconDotsVertical } from "@tabler/icons-react";
 
@@ -42,8 +46,26 @@ export function TimelineMediaCard(props: IProps) {
   const [snapTimes, refreshSnapTimes] = useContext(SnapTimesContext);
   const [offset, setOffset] = useState(props.media.start / 10);
   const [, setRender] = useState(0);
-
+  const [hasHandledChange, setHasHandledChange] = useState(false);
+  const [movedTrack, setMovedTrack] = useContext(MovedTrackContext);
   if (offset != props.media.start / 10) setOffset(props.media.start / 10); // weird workaround for mouse move rendering
+  const handleTrackChangeRender = useCallback(() => {
+    const handleMouseUp = () => {
+      setHasHandledChange(true);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      console.log("moving");
+      if (e.movementX != 0)
+        document.removeEventListener("mousemove", handleMouseMove);
+      setRender((render) => render + 1);
+    };
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp, { once: true });
+  }, []);
+  if (!hasHandledChange && movedTrack == props.track) {
+    handleTrackChangeRender();
+  }
 
   function handleClick() {
     selectCard(props.media);
@@ -71,15 +93,31 @@ export function TimelineMediaCard(props: IProps) {
     return diff;
   }
 
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      let track = props.track;
       const diff = e.pageX - props.media.start / 10;
+      let top = e.pageY - e.nativeEvent.offsetY;
+      const spacing = 8;
       const ogStart = props.media.start;
       const ogEnd = props.media.end;
+      let timelineMediaCopy = [...timelineMedia];
       const handleMouseUp = () => {
         document.removeEventListener("mousemove", handleMouseMove);
         refreshSnapTimes();
+        setMovedTrack(-1);
       };
+      function changeTrack(a: number, b: number) {
+        const len = timelineMediaCopy.length;
+        if (a < 0 || a >= len || b < 0 || b >= len) return;
+        const newArray = [...timelineMediaCopy];
+        const temp = newArray[a];
+        newArray[a] = newArray[b];
+        newArray[b] = temp;
+        setTimelineMedia(newArray);
+        timelineMediaCopy = newArray;
+      }
 
       const handleMouseMove = (e: MouseEvent) => {
         let newStart = (e.pageX - diff) * 10;
@@ -92,8 +130,23 @@ export function TimelineMediaCard(props: IProps) {
         const snapDiff = snapToEdgeDiff(newStart, newEnd, ogStart, ogEnd);
         props.media.start = newStart - snapDiff;
         props.media.end = newEnd - snapDiff;
-        setLeftHighlighted(highlighted);
-        setRender(newStart);
+        if (top - e.pageY > props.height / 2 + spacing) {
+          changeTrack(track, track - 1);
+          track -= 1;
+          top -= spacing + props.height;
+          setMovedTrack(track);
+        } else if (
+          e.pageY - (top + props.height) >
+          props.height / 2 + spacing
+        ) {
+          changeTrack(track, track + 1);
+          track += 1;
+          top += spacing + props.height;
+          setMovedTrack(track);
+        } else {
+          setLeftHighlighted(highlighted);
+          setRender((render) => render + 1);
+        }
         // weird, should only be used to rerender component but breaks otherwise?????
       };
 
@@ -102,7 +155,7 @@ export function TimelineMediaCard(props: IProps) {
       document.addEventListener("mouseup", handleMouseUp, { once: true });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPlaying]
+    [isPlaying, timelineMedia]
   );
 
   const handleDragRight = useCallback(
@@ -136,7 +189,7 @@ export function TimelineMediaCard(props: IProps) {
         const snapDiff = snapToEdgeDiff(newEnd, newEnd, ogEnd, ogEnd);
         props.media.end = newEnd - snapDiff;
         setRightHighlighted(highlighted);
-        setRender(newEnd);
+        setRender((render) => render + 1);
       };
 
       if (isPlaying) return;
@@ -180,9 +233,10 @@ export function TimelineMediaCard(props: IProps) {
           props.media.offsetStart += newStart - lastStart - snapDiff;
         }
         const snapDiff = snapToEdgeDiff(newStart, newStart, ogStart, ogStart);
+        if (snapDiff != 0) highlighted = true;
         props.media.start = newStart - snapDiff;
         setLeftHighlighted(highlighted);
-        setRender(newStart);
+        setRender((render) => render + 1);
       };
 
       if (isPlaying) return;
@@ -237,6 +291,7 @@ export function TimelineMediaCard(props: IProps) {
         pointerEvents="auto"
         zIndex={1}
         onMouseDown={handleMouseDown}
+        id={props.track.toString()}
       >
         <Image
           src={props.media.media.thumbnailURL}

@@ -7,7 +7,8 @@ import {
 } from "../context/TimelineMediaContext";
 import { TimelineMediaCard } from "./MediaCards";
 import { Icon, Stack } from "@chakra-ui/react";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { MediaTimeline } from "./Media";
 
 export default function Timeline() {
   const selectedCard = useContext(SelectedCardContext);
@@ -15,6 +16,7 @@ export default function Timeline() {
   const [snapTimes] = useContext(SnapTimesContext);
   const [, handlePause, handleResume, , isPlaying, setElapsedTime] =
     useContext(PlayContext);
+  const [matchTrack, setMatchTrack] = useState(-1);
   // refreshSnapTimes();
   function Playhead() {
     const elapsedTime = useContext(TimeContext);
@@ -52,7 +54,6 @@ export default function Timeline() {
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp, { once: true });
         handlePause();
-
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [isPlaying]
@@ -133,6 +134,21 @@ export default function Timeline() {
     timelineMedia,
   ]);
 
+  function changeTrack(a: number, b: number) {
+    const len = timelineMedia.length;
+    if (a < 0 || a >= len || b < 0 || b >= len) return;
+    const newArray : MediaTimeline[] = [...timelineMedia]
+    const temp = newArray[a]
+    newArray[a] = newArray[b]
+    newArray[b] = temp
+    setTimelineMedia(newArray);
+    setMatchTrack(b);
+  }
+
+  function resetMatch() {
+    setMatchTrack(-1);
+  }
+
   function RenderImageCards() {
     return (
       <>
@@ -143,6 +159,9 @@ export default function Timeline() {
               height={75}
               track={index}
               key={index}
+              changeTrack={changeTrack}
+              matchTrack={matchTrack}
+              resetMatch={resetMatch}
             />
           ))}
         </Stack>
