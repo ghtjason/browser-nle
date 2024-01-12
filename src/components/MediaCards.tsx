@@ -11,7 +11,6 @@ import {
   SnapTimesContext,
   TimelineMediaContext,
 } from "../context/TimelineMediaContext";
-import { PlayContext } from "../context/TimeContext";
 import { IconDotsVertical } from "@tabler/icons-react";
 
 export default function MediaCard({ img }: { img: BaseMedia }) {
@@ -35,7 +34,7 @@ export function TimelineMediaCard(props: IProps) {
   const selectCard = useContext(SelectCardContext);
   const selectedCard = useContext(SelectedCardContext);
   const [canvas] = useContext(FabricContext);
-  const [, , , , isPlaying] = useContext(PlayContext);
+  // const [, , , , isPlaying] = useContext(PlayContext);
   const duration = props.media.end - props.media.start;
   const width = duration / 10;
   const [rightHighlighted, setRightHighlighted] = useState(false);
@@ -49,13 +48,12 @@ export function TimelineMediaCard(props: IProps) {
   const [hasHandledChange, setHasHandledChange] = useState(false);
   const [movedTrack, setMovedTrack] = useContext(MovedTrackContext);
   if (offset != props.media.start / 10) setOffset(props.media.start / 10); // weird workaround for mouse move rendering
+
   const handleTrackChangeRender = useCallback(() => {
     const handleMouseUp = () => {
       setHasHandledChange(true);
     };
-
     const handleMouseMove = (e: MouseEvent) => {
-      console.log("moving");
       if (e.movementX != 0)
         document.removeEventListener("mousemove", handleMouseMove);
       setRender((render) => render + 1);
@@ -150,12 +148,12 @@ export function TimelineMediaCard(props: IProps) {
         // weird, should only be used to rerender component but breaks otherwise?????
       };
 
-      if (isPlaying) return;
+      // if (isPlaying) return;
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp, { once: true });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPlaying, timelineMedia]
+    [timelineMedia]
   );
 
   const handleDragRight = useCallback(
@@ -192,13 +190,13 @@ export function TimelineMediaCard(props: IProps) {
         setRender((render) => render + 1);
       };
 
-      if (isPlaying) return;
+      // if (isPlaying) return;
       document.body.style.cursor = "e-resize";
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp, { once: true });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPlaying]
+    []
   );
 
   const handleDragLeft = useCallback(
@@ -239,14 +237,14 @@ export function TimelineMediaCard(props: IProps) {
         setRender((render) => render + 1);
       };
 
-      if (isPlaying) return;
+      // if (isPlaying) return;
       document.body.style.cursor = "e-resize";
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp, { once: true });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPlaying]
+    []
   );
 
   return (

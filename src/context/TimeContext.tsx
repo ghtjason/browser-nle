@@ -49,7 +49,7 @@ export const TimeContextProvider = (props: {
     setIsPlaying(true);
   };
 
-  const handlePause = async () => {
+  const handlePause = () => {
     timer.pause();
     setIsPlaying(false);
   };
@@ -85,7 +85,7 @@ export const TimeContextProvider = (props: {
       >
         <MaxTimeContext.Provider value={[maxTime, setMaxTime]}>
           {props.children}
-        </MaxTimeContext.Provider>{" "}
+        </MaxTimeContext.Provider>
       </PlayContext.Provider>
     </TimeContext.Provider>
   );
