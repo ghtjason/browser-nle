@@ -13,21 +13,17 @@ import {
   IconFolder,
   IconSquareLetterT,
 } from "@tabler/icons-react";
-import { useContext, useRef } from "react";
+import { useRef } from "react";
 import {
   BaseMedia,
   ImageMedia,
-  ImageMediaTimeline,
   VideoMedia,
-  VideoMediaTimeline,
 } from "./Media";
 import { useState } from "react";
 import MediaCard from "./MediaCards";
-import { TimelineMediaContext } from "../context/TimelineMediaContext";
 
 export default function Library() {
   const [images, setImages] = useState<BaseMedia[]>([]);
-  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
   function FileUploader() {
     const hiddenFileInput = useRef<HTMLInputElement>(null);
     return (
@@ -60,16 +56,6 @@ export default function Library() {
 
   function addToImages(img: BaseMedia) {
     setImages((images) => [...images, img]);
-  }
-
-  function addMediaToTimeline(media: BaseMedia) {
-    if (media instanceof ImageMedia) {
-      const timelineImage = new ImageMediaTimeline(media);
-      setTimelineMedia([...timelineMedia, timelineImage]);
-    } else if (media instanceof VideoMedia) {
-      const timelineVideo = new VideoMediaTimeline(media);
-      setTimelineMedia([...timelineMedia, timelineVideo]);
-    }
   }
 
   function Sections() {
@@ -105,9 +91,7 @@ export default function Library() {
               <Wrap spacing="15px">
                 {images.map((image, index) => (
                   <WrapItem key={index}>
-                    <div onClick={() => addMediaToTimeline(image)}>
-                      <MediaCard img={image} />
-                    </div>
+                    <MediaCard img={image} />
                   </WrapItem>
                 ))}
               </Wrap>

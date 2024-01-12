@@ -1,5 +1,12 @@
 import { Heading, Image, Box, Icon } from "@chakra-ui/react";
-import { BaseMedia, MediaTimeline, VideoMediaTimeline } from "./Media";
+import {
+  BaseMedia,
+  ImageMedia,
+  ImageMediaTimeline,
+  MediaTimeline,
+  VideoMedia,
+  VideoMediaTimeline,
+} from "./Media";
 import { useCallback, useContext, useState } from "react";
 import {
   SelectCardContext,
@@ -14,8 +21,24 @@ import {
 import { IconDotsVertical } from "@tabler/icons-react";
 
 export default function MediaCard({ img }: { img: BaseMedia }) {
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
+  function addMediaToTimeline() {
+    if (img instanceof ImageMedia) {
+      const timelineImage = new ImageMediaTimeline(img);
+      setTimelineMedia([...timelineMedia, timelineImage]);
+    } else if (img instanceof VideoMedia) {
+      const timelineVideo = new VideoMediaTimeline(img);
+      setTimelineMedia([...timelineMedia, timelineVideo]);
+    }
+  }
   return (
-    <Box width="140px" borderWidth={1} borderRadius="lg" overflow="hidden">
+    <Box
+      width="140px"
+      borderWidth={1}
+      borderRadius="lg"
+      overflow="hidden"
+      onClick={addMediaToTimeline}
+    >
       <Image src={img.thumbnailURL} alt={img.name} />
       <Heading size="xs" isTruncated={true} padding="6px">
         {img.name}
