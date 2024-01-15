@@ -66,7 +66,7 @@ export function TimelineMediaCard(props: IProps) {
   const [leftHighlighted, setLeftHighlighted] = useState(false);
   const rightColor = rightHighlighted ? "#ECC94B" : "white";
   const leftColor = leftHighlighted ? "#ECC94B" : "white";
-  const outline = props.media === selectedCard ? "#ECC94B" : "#2D3748";
+  const outline = props.media === selectedCard ? "#ECC94B" : "#171923";
   const [snapTimes, refreshSnapTimes] = useContext(SnapTimesContext);
   const [offset, setOffset] = useState(props.media.start / ratio);
   const [, setRender] = useState(0);
@@ -295,7 +295,7 @@ export function TimelineMediaCard(props: IProps) {
           <Box
             
             backgroundImage={`url(${props.media.media.audioWaveform})`}
-            backgroundSize="100% 50%"
+            backgroundSize="100% 70%"
             backgroundRepeat="no-repeat"
             height="30%"
             width={`${props.media.media.duration * 1000 / ratio}px`}

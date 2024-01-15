@@ -1,6 +1,6 @@
 import { Stack, Icon } from "@chakra-ui/react";
 import { IconTriangleInverted } from "@tabler/icons-react";
-import { useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import {
   TimeContext,
   PlayContext,
@@ -14,7 +14,7 @@ import { FabricContext } from "../context/FabricContext";
 import { VideoMediaTimeline } from "./Media";
 import { fabric } from "fabric";
 
-export default function Playhead() {
+const Playhead = memo(function Playhead() {
   const [ratio] = useContext(TimeRatioContext);
   const [snapTimes] = useContext(SnapTimesContext);
   const elapsedTime = useContext(TimeContext);
@@ -70,6 +70,7 @@ export default function Playhead() {
   };
 
   function handleTime() {
+    console.log('hi')
     for (const i of timelineMedia) {
       if (!i.fabricObject) break;
       // console.log(i.media.objectURL);
@@ -160,4 +161,6 @@ export default function Playhead() {
       </Stack>
     </>
   );
-}
+});
+
+export default Playhead;
