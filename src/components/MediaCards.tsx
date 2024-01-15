@@ -293,6 +293,7 @@ export function TimelineMediaCard(props: IProps) {
             userSelect="none"
           />
           <Box
+            
             backgroundImage={`url(${props.media.media.audioWaveform})`}
             backgroundSize="100% 50%"
             backgroundRepeat="no-repeat"
@@ -305,6 +306,7 @@ export function TimelineMediaCard(props: IProps) {
               backgroundPosition: `left -${
                 props.media.offsetStart / ratio
               }px center`,
+              imageRendering: 'pixelated'
             }}
           />
         </>

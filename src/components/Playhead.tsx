@@ -1,6 +1,6 @@
 import { Stack, Icon } from "@chakra-ui/react";
 import { IconTriangleInverted } from "@tabler/icons-react";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   TimeContext,
   PlayContext,
@@ -23,6 +23,7 @@ export default function Playhead() {
 
   const [timelineMedia] = useContext(TimelineMediaContext);
   const [canvas] = useContext(FabricContext);
+  const [updateFabric, setUpdateFabric] = useState(true);
 
   const offset = Math.floor(5 + elapsedTime / ratio);
   // why does defining ml within icon cause rendering bugs
@@ -40,10 +41,12 @@ export default function Playhead() {
   const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const time = (e.pageX - 13) * ratio;
     setElapsedTime(snapToEdge(time));
+    setUpdateFabric(true);
     handlePause();
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    let throttle: number;
     if (isPlaying) {
       handleClick(e);
       return;
@@ -53,10 +56,14 @@ export default function Playhead() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (throttle) clearTimeout(throttle);
+      // mouse must be still for 60ms before updating canvas
+      throttle = setTimeout(() => setUpdateFabric(true), 60);
       const time = (e.pageX - 13) * ratio;
+      setUpdateFabric(false);
       setElapsedTime(snapToEdge(time));
     };
-
+    setUpdateFabric(false);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp, { once: true });
     handlePause();
@@ -107,11 +114,11 @@ export default function Playhead() {
       }
     }
   }
-  handleTime();
+
+  if (updateFabric) handleTime();
   useEffect(() => {
     let recurse = true;
     function render() {
-      console.log('render')
       if (!canvas || !canvas.getContext()) return;
       canvas.renderAll();
       if (!recurse || !isPlaying) return;
