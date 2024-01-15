@@ -19,6 +19,7 @@ import {
   TimelineMediaContext,
 } from "../context/TimelineMediaContext";
 import { IconDotsVertical } from "@tabler/icons-react";
+import { TimeRatioContext } from "../context/TimeContext";
 
 export default function MediaCard({ img }: { img: BaseMedia }) {
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
@@ -54,23 +55,27 @@ interface IProps {
 }
 
 export function TimelineMediaCard(props: IProps) {
+  const [ratio] = useContext(TimeRatioContext)
   const selectCard = useContext(SelectCardContext);
   const selectedCard = useContext(SelectedCardContext);
   const [canvas] = useContext(FabricContext);
   // const [, , , , isPlaying] = useContext(PlayContext);
   const duration = props.media.end - props.media.start;
-  const width = duration / 10;
+  const width = duration / ratio;
   const [rightHighlighted, setRightHighlighted] = useState(false);
   const [leftHighlighted, setLeftHighlighted] = useState(false);
   const rightColor = rightHighlighted ? "#ECC94B" : "white";
   const leftColor = leftHighlighted ? "#ECC94B" : "white";
   const outline = props.media === selectedCard ? "#ECC94B" : "#2D3748";
   const [snapTimes, refreshSnapTimes] = useContext(SnapTimesContext);
-  const [offset, setOffset] = useState(props.media.start / 10);
+  const [offset, setOffset] = useState(props.media.start / ratio);
   const [, setRender] = useState(0);
   const [hasHandledChange, setHasHandledChange] = useState(false);
   const [movedTrack, setMovedTrack] = useContext(MovedTrackContext);
-  if (offset != props.media.start / 10) setOffset(props.media.start / 10); // weird workaround for mouse move rendering
+  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
+
+
+  if (offset != props.media.start / ratio) setOffset(props.media.start / ratio); // weird workaround for mouse move rendering
 
   const handleTrackChangeRender = useCallback(() => {
     const handleMouseUp = () => {
@@ -105,7 +110,7 @@ export function TimelineMediaCard(props: IProps) {
     function snapToEdge(n: number) {
       for (const snap of snapTimes) {
         if (snap == ignoreStart || snap == ignoreEnd) continue;
-        if (Math.abs(n - snap) < 100) return snap;
+        if (Math.abs(n - snap) < 10 * ratio) return snap;
       }
       return n;
     }
@@ -114,11 +119,10 @@ export function TimelineMediaCard(props: IProps) {
     return diff;
   }
 
-  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       let track = props.track;
-      const diff = e.pageX - props.media.start / 10;
+      const diff = e.pageX - props.media.start / ratio;
       let top = e.pageY - e.nativeEvent.offsetY;
       const spacing = 8;
       const ogStart = props.media.start;
@@ -141,7 +145,7 @@ export function TimelineMediaCard(props: IProps) {
       }
 
       const handleMouseMove = (e: MouseEvent) => {
-        let newStart = (e.pageX - diff) * 10;
+        let newStart = (e.pageX - diff) * ratio;
         let highlighted = false;
         if (newStart <= 0) {
           newStart = 0;
@@ -168,10 +172,8 @@ export function TimelineMediaCard(props: IProps) {
           setLeftHighlighted(highlighted);
           setRender((render) => render + 1);
         }
-        // weird, should only be used to rerender component but breaks otherwise?????
       };
 
-      // if (isPlaying) return;
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp, { once: true });
     },
@@ -181,7 +183,7 @@ export function TimelineMediaCard(props: IProps) {
 
   const handleDragRight = useCallback(
     (e: React.MouseEvent<SVGElement, MouseEvent>) => {
-      const diff = e.pageX - props.media.end / 10;
+      const diff = e.pageX - props.media.end / ratio;
       const ogEnd = props.media.end;
       const handleMouseUp = () => {
         document.body.style.cursor = "default";
@@ -191,7 +193,7 @@ export function TimelineMediaCard(props: IProps) {
       };
 
       const handleMouseMove = (e: MouseEvent) => {
-        let newEnd = (e.pageX - diff) * 10;
+        let newEnd = (e.pageX - diff) * ratio;
         let highlighted = false;
         if (newEnd <= props.media.start + 100) {
           newEnd = props.media.start + 100;
@@ -225,7 +227,7 @@ export function TimelineMediaCard(props: IProps) {
   const handleDragLeft = useCallback(
     (e: React.MouseEvent<SVGElement, MouseEvent>) => {
       const ogStart = props.media.start;
-      const diff = e.pageX - props.media.start / 10;
+      const diff = e.pageX - props.media.start / ratio;
       const handleMouseUp = () => {
         document.body.style.cursor = "default";
         setLeftHighlighted(false);
@@ -234,7 +236,7 @@ export function TimelineMediaCard(props: IProps) {
       };
 
       const handleMouseMove = (e: MouseEvent) => {
-        let newStart = (e.pageX - diff) * 10;
+        let newStart = (e.pageX - diff) * ratio;
         const lastStart = props.media.start;
         let highlighted = false;
         if (newStart <= 0) {
@@ -269,7 +271,58 @@ export function TimelineMediaCard(props: IProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+  const thumbnail =
+    props.media instanceof ImageMediaTimeline
+      ? props.media.media.objectURL
+      : props.media.media.thumbnailURL;
 
+  function CardInside() {
+    if (
+      props.media instanceof VideoMediaTimeline &&
+      props.media.media.audioWaveform
+    ) {
+      return (
+        <>
+          <Box
+            backgroundImage={`url(${thumbnail})`}
+            backgroundSize="auto 100%"
+            backgroundRepeat="repeat-x"
+            height="70%"
+            width="100%"
+            draggable={false}
+            userSelect="none"
+          />
+          <Box
+            backgroundImage={`url(${props.media.media.audioWaveform})`}
+            backgroundSize="100% 50%"
+            backgroundRepeat="no-repeat"
+            height="30%"
+            width={`${props.media.media.duration * 1000 / ratio}px`}
+            draggable={false}
+            userSelect="none"
+            backgroundColor="#2a4365"
+            style={{
+              backgroundPosition: `left -${
+                props.media.offsetStart / ratio
+              }px center`,
+            }}
+          />
+        </>
+      );
+    } else {
+      return (
+        <Box
+          backgroundImage={`url(${thumbnail})`}
+          backgroundSize="auto 100%"
+          backgroundRepeat="repeat-x"
+          height="100%"
+          width="100%"
+          draggable={false}
+          userSelect="none"
+        />
+      );
+    }
+  }
   return (
     <div
       style={{
@@ -314,14 +367,7 @@ export function TimelineMediaCard(props: IProps) {
         onMouseDown={handleMouseDown}
         id={props.track.toString()}
       >
-        <Image
-          src={props.media.media.thumbnailURL}
-          alt={props.media.media.name}
-          minHeight="100%"
-          minWidth="100%"
-          draggable={false}
-          userSelect="none"
-        />
+        <CardInside />
       </Box>
     </div>
   );

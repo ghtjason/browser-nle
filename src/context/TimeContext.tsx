@@ -9,7 +9,7 @@ type PlayContext = [
   boolean,
   (t: number) => void
 ];
-type MaxTimeContext = [number, (n: number) => void];
+type NumberStateContext = [number, (n: number) => void];
 
 // This is the context that components in need of canvas-access will use:
 export const TimeContext = createContext<number>(0);
@@ -23,23 +23,28 @@ export const PlayContext = createContext<PlayContext>([
   () => {},
 ]);
 
-export const MaxTimeContext = createContext<MaxTimeContext>([0, () => {}]);
+export const TimeRatioContext = createContext<NumberStateContext>([
+  0,
+  () => {},
+]);
+
+export const MaxTimeContext = createContext<NumberStateContext>([0, () => {}]);
 
 export const TimeContextProvider = (props: {
   children: JSX.Element;
 }): JSX.Element => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [maxTime, setMaxTime] = useState<number>(60 * 1000);
+  const [maxTime, setMaxTime] = useState<number>(180 * 1000);
+  const [msToPixelRatio, setMsToPixelRatio] = useState(50);
 
-  
   const timerRef = useRef<Timer | null>(null);
   const callback = useCallback(() => {
     if (timerRef.current) {
       if (timerRef.current.getElapsedRunningTime() > maxTime) handleReset();
       else setElapsedTime(timerRef.current.getElapsedRunningTime());
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const timer = useTimer({ delay: 10 }, callback);
   timerRef.current = timer;
@@ -84,7 +89,11 @@ export const TimeContextProvider = (props: {
         ]}
       >
         <MaxTimeContext.Provider value={[maxTime, setMaxTime]}>
-          {props.children}
+          <TimeRatioContext.Provider
+            value={[msToPixelRatio, setMsToPixelRatio]}
+          >
+            {props.children}
+          </TimeRatioContext.Provider>
         </MaxTimeContext.Provider>
       </PlayContext.Provider>
     </TimeContext.Provider>

@@ -32,7 +32,9 @@ export default function Player(_props: IProps) {
           i.fabricObject.visible = false;
           if (i instanceof VideoMediaTimeline) {
             i.media.element.pause();
-            i.media.element.currentTime = i.offsetStart / 1000;
+            if (elapsedTime < i.end)
+              // weird flashing bug when not meant to be visible
+              i.media.element.currentTime = i.offsetStart / 1000;
           }
         } else {
           i.fabricObject.visible = true;
