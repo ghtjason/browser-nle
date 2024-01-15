@@ -1,12 +1,18 @@
 import { Stack, Icon } from "@chakra-ui/react";
 import { IconTriangleInverted } from "@tabler/icons-react";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import {
   TimeContext,
   PlayContext,
   TimeRatioContext,
 } from "../context/TimeContext";
-import { SnapTimesContext } from "../context/TimelineMediaContext";
+import {
+  SnapTimesContext,
+  TimelineMediaContext,
+} from "../context/TimelineMediaContext";
+import { FabricContext } from "../context/FabricContext";
+import { VideoMediaTimeline } from "./Media";
+import { fabric } from "fabric";
 
 export default function Playhead() {
   const [ratio] = useContext(TimeRatioContext);
@@ -14,6 +20,10 @@ export default function Playhead() {
   const elapsedTime = useContext(TimeContext);
   const [, handlePause, , , isPlaying, setElapsedTime] =
     useContext(PlayContext);
+
+  const [timelineMedia] = useContext(TimelineMediaContext);
+  const [canvas] = useContext(FabricContext);
+
   const offset = Math.floor(5 + elapsedTime / ratio);
   // why does defining ml within icon cause rendering bugs
   const boxStyle = { marginLeft: offset };
@@ -51,6 +61,67 @@ export default function Playhead() {
     document.addEventListener("mouseup", handleMouseUp, { once: true });
     handlePause();
   };
+
+  function handleTime() {
+    for (const i of timelineMedia) {
+      if (!i.fabricObject) break;
+      // console.log(i.media.objectURL);
+      if (isPlaying) {
+        if (elapsedTime >= i.end || elapsedTime < i.start) {
+          i.fabricObject.visible = false;
+          if (i instanceof VideoMediaTimeline) {
+            i.media.element.pause();
+            if (elapsedTime < i.end)
+              // weird flashing bug when not meant to be visible
+              i.media.element.currentTime = i.offsetStart / 1000;
+          }
+        } else {
+          i.fabricObject.visible = true;
+          if (i instanceof VideoMediaTimeline && i.media.element.paused) {
+            i.media.element.play(); // assume time has been seeked to correct location
+          }
+        }
+      } else {
+        if (elapsedTime >= i.end || elapsedTime < i.start) {
+          i.fabricObject.visible = false;
+          if (i instanceof VideoMediaTimeline) {
+            i.media.element.onseeked = () => {
+              i.fabricObject!.visible = false;
+              if (canvas && canvas.getContext()) canvas.renderAll();
+            };
+            i.media.element.pause();
+            i.media.element.currentTime = 0;
+          }
+        } else {
+          if (i instanceof VideoMediaTimeline) {
+            i.media.element.onseeked = () => {
+              i.fabricObject!.visible = true;
+              if (canvas && canvas.getContext()) canvas.renderAll();
+            };
+            i.media.element.pause();
+            i.media.element.currentTime =
+              (elapsedTime - i.start + i.offsetStart) / 1000;
+          } else i.fabricObject.visible = true;
+        }
+        if (canvas && canvas.getContext()) canvas.renderAll();
+      }
+    }
+  }
+  handleTime();
+  useEffect(() => {
+    let recurse = true;
+    function render() {
+      console.log('render')
+      if (!canvas || !canvas.getContext()) return;
+      canvas.renderAll();
+      if (!recurse || !isPlaying) return;
+      fabric.util.requestAnimFrame(render);
+    }
+    render();
+    return () => {
+      recurse = false;
+    };
+  }, [canvas, isPlaying]);
 
   return (
     <>

@@ -11,7 +11,6 @@ export default function Timeline() {
   const selectedCard = useContext(SelectedCardContext);
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
   // refreshSnapTimes();
-  console.log('rerendered')
   useEffect(() => {
     function DeleteCard() {
       if (selectedCard) {

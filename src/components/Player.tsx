@@ -1,11 +1,10 @@
 import { useContext, useEffect, useRef } from "react";
-import { MediaTimeline, VideoMediaTimeline } from "./Media";
+import { MediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
 import { SelectCardContext } from "../context/SelectedCardContext";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
 import { Center } from "@chakra-ui/react";
-import { PlayContext, TimeContext } from "../context/TimeContext";
 
 interface IProps {
   key: number;
@@ -17,71 +16,6 @@ export default function Player(_props: IProps) {
   const [timelineMedia] = useContext(TimelineMediaContext);
   const reversedMedia = timelineMedia.slice().reverse();
   const selectCard = useContext(SelectCardContext);
-
-  function HandleTime() {
-    const elapsedTime = useContext(TimeContext);
-    const [timelineMedia] = useContext(TimelineMediaContext);
-    const [, , , , isPlaying] = useContext(PlayContext);
-    const [canvas] = useContext(FabricContext);
-
-    for (const i of timelineMedia) {
-      if (!i.fabricObject) break;
-      // console.log(i.media.objectURL);
-      if (isPlaying) {
-        if (elapsedTime >= i.end || elapsedTime < i.start) {
-          i.fabricObject.visible = false;
-          if (i instanceof VideoMediaTimeline) {
-            i.media.element.pause();
-            if (elapsedTime < i.end)
-              // weird flashing bug when not meant to be visible
-              i.media.element.currentTime = i.offsetStart / 1000;
-          }
-        } else {
-          i.fabricObject.visible = true;
-          if (i instanceof VideoMediaTimeline && i.media.element.paused) {
-            i.media.element.play(); // assume time has been seeked to correct location
-          }
-        }
-      } else {
-        if (elapsedTime >= i.end || elapsedTime < i.start) {
-          i.fabricObject.visible = false;
-          if (i instanceof VideoMediaTimeline) {
-            i.media.element.onseeked = () => {
-              i.fabricObject!.visible = false;
-              if (canvas && canvas.getContext()) canvas.renderAll();
-            };
-            i.media.element.pause();
-            i.media.element.currentTime = 0;
-          }
-        } else {
-          if (i instanceof VideoMediaTimeline) {
-            i.media.element.onseeked = () => {
-              i.fabricObject!.visible = true;
-              if (canvas && canvas.getContext()) canvas.renderAll();
-            };
-            i.media.element.pause();
-            i.media.element.currentTime =
-              (elapsedTime - i.start + i.offsetStart) / 1000;
-          } else i.fabricObject.visible = true;
-        }
-        if (canvas && canvas.getContext()) canvas.renderAll();
-      }
-    }
-    useEffect(() => {
-      let recurse = true;
-      function render() {
-        if (!canvas || !canvas.getContext()) return;
-        canvas.renderAll();
-        if (!recurse || !isPlaying) return;
-        fabric.util.requestAnimFrame(render);
-      }
-      render();
-      return () => {
-        recurse = false;
-      };
-    }, [canvas, isPlaying]);
-    return <></>;
-  }
 
   function autoScaleCanvas(canvas: fabric.Canvas | null) {
     if (canvas) {
@@ -176,7 +110,6 @@ export default function Player(_props: IProps) {
     >
       <div id="player">
         <CanvasApp />
-        <HandleTime />
       </div>
     </Center>
   );
