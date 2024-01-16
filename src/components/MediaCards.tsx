@@ -55,7 +55,7 @@ interface IProps {
 }
 
 export function TimelineMediaCard(props: IProps) {
-  const [ratio] = useContext(TimeRatioContext)
+  const [ratio] = useContext(TimeRatioContext);
   const selectCard = useContext(SelectCardContext);
   const selectedCard = useContext(SelectedCardContext);
   const [canvas] = useContext(FabricContext);
@@ -73,7 +73,6 @@ export function TimelineMediaCard(props: IProps) {
   const [hasHandledChange, setHasHandledChange] = useState(false);
   const [movedTrack, setMovedTrack] = useContext(MovedTrackContext);
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
-
 
   if (offset != props.media.start / ratio) setOffset(props.media.start / ratio); // weird workaround for mouse move rendering
 
@@ -107,15 +106,15 @@ export function TimelineMediaCard(props: IProps) {
     ignoreStart: number,
     ignoreEnd: number
   ) {
-    function snapToEdge(n: number) {
+    function snapToEdge(n: number, ignore: number) {
       for (const snap of snapTimes) {
-        if (snap == ignoreStart || snap == ignoreEnd) continue;
+        if (snap == ignore) continue;
         if (Math.abs(n - snap) < 10 * ratio) return snap;
       }
       return n;
     }
-    let diff = start - snapToEdge(start);
-    if (diff == 0) diff = end - snapToEdge(end);
+    let diff = start - snapToEdge(start, ignoreStart);
+    if (diff == 0) diff = end - snapToEdge(end, ignoreEnd);
     return diff;
   }
 
@@ -293,12 +292,11 @@ export function TimelineMediaCard(props: IProps) {
             userSelect="none"
           />
           <Box
-            
             backgroundImage={`url(${props.media.media.audioWaveform})`}
             backgroundSize="100% 70%"
             backgroundRepeat="no-repeat"
             height="30%"
-            width={`${props.media.media.duration * 1000 / ratio}px`}
+            width={`${(props.media.media.duration * 1000) / ratio}px`}
             draggable={false}
             userSelect="none"
             backgroundColor="#2a4365"
@@ -306,7 +304,7 @@ export function TimelineMediaCard(props: IProps) {
               backgroundPosition: `left -${
                 props.media.offsetStart / ratio
               }px center`,
-              imageRendering: 'pixelated'
+              imageRendering: "pixelated",
             }}
           />
         </>

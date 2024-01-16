@@ -1,9 +1,6 @@
 import { useContext, useEffect, useRef } from "react";
-import { MediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
-import { SelectCardContext } from "../context/SelectedCardContext";
-import { TimelineMediaContext } from "../context/TimelineMediaContext";
 import { Center } from "@chakra-ui/react";
 
 interface IProps {
@@ -13,13 +10,11 @@ interface IProps {
 // props only used to rerender component on update
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function Player(_props: IProps) {
-  const [timelineMedia] = useContext(TimelineMediaContext);
-  const reversedMedia = timelineMedia.slice().reverse();
-  const selectCard = useContext(SelectCardContext);
-
+  // const [timelineMedia] = useContext(TimelineMediaContext);
+  // const reversedMedia = timelineMedia.slice().reverse();
+  // const selectCard = useContext(SelectCardContext);
   function autoScaleCanvas(canvas: fabric.Canvas | null) {
     if (canvas) {
-      canvas.setBackgroundColor("black", () => {});
       const container = document.getElementById("playerContainer");
       if (container && canvas.getWidth() == 1920) {
         const scale = Math.min(
@@ -33,25 +28,24 @@ export default function Player(_props: IProps) {
     }
   }
 
-  function modifiedHandler(e: fabric.IEvent<MouseEvent>, index: number) {
-    const mediaObject = reversedMedia[index];
-    const fabricObject = e.target!;
-    mediaObject.x = fabricObject.left!;
-    mediaObject.y = fabricObject.top!;
-    mediaObject.scaleX = fabricObject.scaleX!;
-    mediaObject.scaleY = fabricObject.scaleY!;
-    mediaObject.angle = fabricObject.angle!;
-    mediaObject.flipX = fabricObject.flipX!;
-    mediaObject.flipY = fabricObject.flipY!;
-  }
+  // function modifiedHandler(e: fabric.IEvent<MouseEvent>, index: number) {
+  //   const mediaObject = reversedMedia[index];
+  //   const fabricObject = e.target!;
+  //   mediaObject.x = fabricObject.left!;
+  //   mediaObject.y = fabricObject.top!;
+  //   mediaObject.scaleX = fabricObject.scaleX!;
+  //   mediaObject.scaleY = fabricObject.scaleY!;
+  //   mediaObject.angle = fabricObject.angle!;
+  //   mediaObject.flipX = fabricObject.flipX!;
+  //   mediaObject.flipY = fabricObject.flipY!;
+  // }
 
-  function selectedHandler(mediaObject: MediaTimeline) {
-    selectCard(mediaObject);
-  }
+  // function selectedHandler(mediaObject: MediaTimeline) {
+  //   selectCard(mediaObject);
+  // }
 
   function CanvasApp() {
     const [canvas, initCanvas] = useContext(FabricContext);
-
     const canvasEl = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
       const options = {
@@ -72,25 +66,25 @@ export default function Player(_props: IProps) {
     const container = document.getElementById("playerContainer");
 
     if (container && canvas && canvas.getWidth() == 1920) {
-      for (const i of reversedMedia) {
-        const fabricImage = new fabric.Image(i.media.element, {
-          top: i.y,
-          left: i.x,
-          angle: i.angle,
-          scaleX: i.scaleX,
-          scaleY: i.scaleY,
-          objectCaching: false,
-        });
-        fabricImage.on("selected", () => {
-          selectedHandler(i);
-        });
-        i.fabricObject = fabricImage;
-        canvas.add(fabricImage);
-      }
+      // for (const i of reversedMedia) {
+      //   const fabricImage = new fabric.Image(i.media.element, {
+      //     top: i.y,
+      //     left: i.x,
+      //     angle: i.angle,
+      //     scaleX: i.scaleX,
+      //     scaleY: i.scaleY,
+      //     objectCaching: false,
+      //   });
+      //   fabricImage.on("selected", () => {
+      //     selectedHandler(i);
+      //   });
+      //   i.fabricObject = fabricImage;
+      //   canvas.add(fabricImage);
+      // }
+      // canvas.on("object:modified", (e) =>
+      // modifiedHandler(e, canvas.getObjects().indexOf(e.target!))
+      // );
       autoScaleCanvas(canvas);
-      canvas.on("object:modified", (e) =>
-        modifiedHandler(e, canvas.getObjects().indexOf(e.target!))
-      );
     }
     return (
       <div>

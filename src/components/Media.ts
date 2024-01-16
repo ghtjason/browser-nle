@@ -32,7 +32,6 @@ function drawThumbnail(
     (blob) => {
       if (!blob) return;
       mediaObject.thumbnailURL = URL.createObjectURL(blob);
-      console.log(mediaObject.thumbnailURL);
       updateArray(mediaObject);
     },
     "image/webp",

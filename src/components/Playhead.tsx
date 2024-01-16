@@ -1,6 +1,6 @@
 import { Stack, Icon } from "@chakra-ui/react";
 import { IconTriangleInverted } from "@tabler/icons-react";
-import { memo, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   TimeContext,
   PlayContext,
@@ -14,7 +14,7 @@ import { FabricContext } from "../context/FabricContext";
 import { VideoMediaTimeline } from "./Media";
 import { fabric } from "fabric";
 
-const Playhead = memo(function Playhead() {
+function Playhead() {
   const [ratio] = useContext(TimeRatioContext);
   const [snapTimes] = useContext(SnapTimesContext);
   const elapsedTime = useContext(TimeContext);
@@ -24,13 +24,12 @@ const Playhead = memo(function Playhead() {
   const [timelineMedia] = useContext(TimelineMediaContext);
   const [canvas] = useContext(FabricContext);
   const [updateFabric, setUpdateFabric] = useState(true);
-
+    
   const offset = Math.floor(5 + elapsedTime / ratio);
   // why does defining ml within icon cause rendering bugs
   const boxStyle = { marginLeft: offset };
-
   const color =
-    !isPlaying && snapTimes.has(elapsedTime) ? "#ECC94B" : "#E53E3E";
+    !isPlaying && snapTimes.includes(elapsedTime) ? "#ECC94B" : "#E53E3E";
 
   function snapToEdge(n: number) {
     for (const snap of snapTimes) {
@@ -70,10 +69,8 @@ const Playhead = memo(function Playhead() {
   };
 
   function handleTime() {
-    console.log('hi')
     for (const i of timelineMedia) {
       if (!i.fabricObject) break;
-      // console.log(i.media.objectURL);
       if (isPlaying) {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
@@ -161,6 +158,6 @@ const Playhead = memo(function Playhead() {
       </Stack>
     </>
   );
-});
+}
 
 export default Playhead;
