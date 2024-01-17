@@ -3,7 +3,7 @@ import { MediaTimeline } from "../components/Media";
 
 export const SelectedCardContext = createContext<MediaTimeline | null>(null);
 
-export const SelectCardContext = createContext<(media: MediaTimeline) => void>(
+export const SelectCardContext = createContext<(media: MediaTimeline | null) => void>(
   () => {}
 );
 

@@ -132,9 +132,12 @@ export function TimelineMediaCard(props: IProps) {
         refreshSnapTimes();
         setMovedTrack(-1);
       };
-      function changeTrack(a: number, b: number) {
+      function canChangeTrack(a: number, b: number) {
         const len = timelineMediaCopy.length;
-        if (a < 0 || a >= len || b < 0 || b >= len) return;
+        return !(a < 0 || a >= len || b < 0 || b >= len);
+      }
+      function changeTrack(a: number, b: number) {
+        if (!canChangeTrack(a, b)) return; // extra check in case
         const newArray = [...timelineMediaCopy];
         const temp = newArray[a];
         newArray[a] = newArray[b];
@@ -154,14 +157,17 @@ export function TimelineMediaCard(props: IProps) {
         const snapDiff = snapToEdgeDiff(newStart, newEnd, ogStart, ogEnd);
         props.media.start = newStart - snapDiff;
         props.media.end = newEnd - snapDiff;
-        if (top - e.pageY > props.height / 2 + spacing) {
+        if (
+          top - e.pageY > props.height / 2 + spacing &&
+          canChangeTrack(track, track - 1)
+        ) {
           changeTrack(track, track - 1);
           track -= 1;
           top -= spacing + props.height;
           setMovedTrack(track);
         } else if (
-          e.pageY - (top + props.height) >
-          props.height / 2 + spacing
+          e.pageY - (top + props.height) > props.height / 2 + spacing &&
+          canChangeTrack(track, track + 1)
         ) {
           changeTrack(track, track + 1);
           track += 1;

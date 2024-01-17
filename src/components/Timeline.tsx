@@ -111,9 +111,9 @@ export default function Timeline() {
   }
 
   return (
-    <>
+    <div>
       <Playhead />
       <RenderImageCards />
-    </>
+    </div>
   );
 }

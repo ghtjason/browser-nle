@@ -47,6 +47,7 @@ export default function Library() {
         <IconButton
           aria-label="Add file"
           icon={<IconSquarePlus />}
+          color="#E2E8F0"
           mb={3}
           onClick={() => hiddenFileInput.current?.click()}
         />

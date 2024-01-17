@@ -1,6 +1,6 @@
 import { Stack, Icon } from "@chakra-ui/react";
 import { IconTriangleInverted } from "@tabler/icons-react";
-import { useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import {
   TimeContext,
   PlayContext,
@@ -13,8 +13,9 @@ import {
 import { FabricContext } from "../context/FabricContext";
 import { VideoMediaTimeline } from "./Media";
 import { fabric } from "fabric";
+import { SelectCardContext } from "../context/SelectedCardContext";
 
-function Playhead() {
+const Playhead = memo(function Playhead() {
   const [ratio] = useContext(TimeRatioContext);
   const [snapTimes] = useContext(SnapTimesContext);
   const elapsedTime = useContext(TimeContext);
@@ -24,7 +25,7 @@ function Playhead() {
   const [timelineMedia] = useContext(TimelineMediaContext);
   const [canvas] = useContext(FabricContext);
   const [updateFabric, setUpdateFabric] = useState(true);
-    
+  const setSelectedCard = useContext(SelectCardContext);
   const offset = Math.floor(5 + elapsedTime / ratio);
   // why does defining ml within icon cause rendering bugs
   const boxStyle = { marginLeft: offset };
@@ -39,6 +40,8 @@ function Playhead() {
   }
   const handleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const time = (e.pageX - 13) * ratio;
+    if (canvas) canvas.discardActiveObject();
+    setSelectedCard(null);
     setElapsedTime(snapToEdge(time));
     setUpdateFabric(true);
     handlePause();
@@ -158,6 +161,6 @@ function Playhead() {
       </Stack>
     </>
   );
-}
+});
 
 export default Playhead;

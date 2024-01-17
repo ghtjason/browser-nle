@@ -9,14 +9,15 @@ import { SelectedCardContextProvider } from "./context/SelectedCardContext";
 import { TimelineMediaContextProvider } from "./context/TimelineMediaContext";
 import { TimeContextProvider } from "./context/TimeContext";
 import Timecode from "./components/Timecode";
+import Inspector from "./components/Inspector";
 
 function App() {
   const [playerKey, setPlayerKey] = useState(0);
-
   return (
     <div
       style={{
         height: "100vh",
+        color: "#EDF2F7",
       }}
     >
       <SelectedCardContextProvider>
@@ -41,7 +42,7 @@ function App() {
                       <Timecode />
                     </Allotment.Pane>
                     <Allotment.Pane minSize={100}>
-                      <div />
+                      <Inspector />
                     </Allotment.Pane>
                   </Allotment>
                 </Allotment.Pane>
