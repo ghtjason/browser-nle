@@ -3,22 +3,17 @@ import { fabric } from "fabric";
 import { FabricContext } from "../context/FabricContext";
 import { Center } from "@chakra-ui/react";
 
-interface IProps {
-  key: number;
-}
-
-// props only used to rerender component on update
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function Player(_props: IProps) {
+export default function Player() {
   function autoScaleCanvas(canvas: fabric.Canvas | null) {
-    if (canvas) {
+    if (canvas && canvas.getContext()) {
       const container = document.getElementById("playerContainer");
-      if (container && canvas.getWidth() == 1920) {
+      if (container) {
         const scale = Math.min(
-          container.offsetWidth / 1920,
-          container.offsetHeight / 1080
+          container.offsetWidth / canvas.getWidth(),
+          container.offsetHeight / canvas.getHeight()
         );
-        canvas.setZoom(scale);
+
+        canvas.setZoom(canvas.getZoom() * scale);
         canvas.setHeight(canvas.getHeight() * scale);
         canvas.setWidth(canvas.getWidth() * scale);
       }
@@ -46,9 +41,13 @@ export default function Player(_props: IProps) {
 
     const container = document.getElementById("playerContainer");
 
-    if (container && canvas && canvas.getWidth() == 1920) {
-      autoScaleCanvas(canvas);
+    let throttle: number;
+    function throttledScaleCanvas() {
+      if (throttle) clearTimeout(throttle);
+      // 0 ms callback prevents flashing
+      throttle = setTimeout(() => autoScaleCanvas(canvas), 0);
     }
+    if (container) new ResizeObserver(throttledScaleCanvas).observe(container);
     return (
       <div>
         <canvas ref={canvasEl} id="fabric-canvas" />

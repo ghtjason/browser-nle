@@ -149,15 +149,15 @@ const Playhead = memo(function Playhead() {
         zIndex={2}
       >
         <Icon as={IconTriangleInverted} color={color} boxSize="17px" />
-        <div
-          style={{
-            width: "1px",
-            backgroundColor: color,
-            height: "100%",
-            margin: "auto",
-            marginTop: 0,
-          }}
-        ></div>
+          <div
+            style={{
+              width: "1px",
+              backgroundColor: color,
+              height: "100%",
+              margin: "auto",
+              marginTop: 0,
+            }}
+          />
       </Stack>
     </>
   );

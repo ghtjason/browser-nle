@@ -1,6 +1,4 @@
-import {
-  SelectCardContext,
-} from "../context/SelectedCardContext";
+import { SelectCardContext } from "../context/SelectedCardContext";
 import {
   SnapTimesContext,
   TimelineMediaContext,
@@ -29,10 +27,12 @@ export default function Timeline() {
             (media) => media !== canvas.getActiveObject()?.toObject().media
           )
         );
+        selectCard(null);
       }
     }
     function processKey(e: globalThis.KeyboardEvent) {
-      if (e.repeat) return;
+      if (e.repeat || document.activeElement!.tagName.toLowerCase() == "input")
+        return;
       switch (e.key) {
         case "Delete":
         case "Backspace":
@@ -44,18 +44,20 @@ export default function Timeline() {
     return () => {
       document.removeEventListener("keydown", processKey);
     };
-  }, [canvas, setTimelineMedia, timelineMedia]);
+  }, [canvas, selectCard, setTimelineMedia, timelineMedia]);
   const reversedMedia = timelineMedia.slice().reverse();
   function modifiedHandler(e: fabric.IEvent<MouseEvent>, m: MediaTimeline) {
     const mediaObject = m;
-    const fabricObject = e.target!;
-    mediaObject.x = fabricObject.left!;
-    mediaObject.y = fabricObject.top!;
-    mediaObject.scaleX = fabricObject.scaleX!;
-    mediaObject.scaleY = fabricObject.scaleY!;
-    mediaObject.angle = fabricObject.angle!;
-    mediaObject.flipX = fabricObject.flipX!;
-    mediaObject.flipY = fabricObject.flipY!;
+    const fabricObject = e.target;
+    if (fabricObject) {
+      mediaObject.x = fabricObject.left!;
+      mediaObject.y = fabricObject.top!;
+      mediaObject.scaleX = fabricObject.scaleX!;
+      mediaObject.scaleY = fabricObject.scaleY!;
+      mediaObject.angle = fabricObject.angle!;
+      mediaObject.flipX = fabricObject.flipX!;
+      mediaObject.flipY = fabricObject.flipY!;
+    }
   }
   function selectedHandler(mediaObject: MediaTimeline) {
     selectCard(mediaObject);
@@ -68,12 +70,15 @@ export default function Timeline() {
       canvas.setBackgroundColor("black", () => {});
       for (const i of reversedMedia) {
         const fabricImage = new fabric.Image(i.media.element, {
-          top: i.y,
-          left: i.x,
+          // top: i.y,
+          // left: i.x,
+          originX: "center",
+          originY: "center",
           angle: i.angle,
           scaleX: i.scaleX,
           scaleY: i.scaleY,
-          objectCaching: false,
+          centeredScaling: true,
+          objectCaching: true,
         });
         fabricImage.on("selected", () => {
           selectedHandler(i);
@@ -83,6 +88,9 @@ export default function Timeline() {
             media: i,
           };
         };
+        canvas.viewportCenterObject(fabricImage)
+        i.x = fabricImage.left!;
+        i.y = fabricImage.top!;
         i.fabricObject = fabricImage;
         canvas.add(fabricImage);
       }

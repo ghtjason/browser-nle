@@ -2,7 +2,6 @@ import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import Library from "./components/Library";
 import Timeline from "./components/Timeline";
-import { useState } from "react";
 import Player from "./components/Player";
 import { FabricContextProvider } from "./context/FabricContext";
 import { SelectedCardContextProvider } from "./context/SelectedCardContext";
@@ -12,7 +11,6 @@ import Timecode from "./components/Timecode";
 import Inspector from "./components/Inspector";
 
 function App() {
-  const [playerKey, setPlayerKey] = useState(0);
   return (
     <div
       style={{
@@ -27,21 +25,19 @@ function App() {
               <Allotment
                 defaultSizes={[2, 1]}
                 vertical={true}
-                onDragEnd={() => setPlayerKey(playerKey + 1)}
               >
                 <Allotment.Pane minSize={300}>
                   <Allotment
                     defaultSizes={[2, 5, 2]}
-                    onDragEnd={() => setPlayerKey(playerKey + 1)} // force rerender for player scaling
                   >
-                    <Allotment.Pane minSize={100}>
+                    <Allotment.Pane minSize={250}>
                       <Library />
                     </Allotment.Pane>
                     <Allotment.Pane minSize={300}>
-                      <Player key={playerKey} />
+                      <Player />
                       <Timecode />
                     </Allotment.Pane>
-                    <Allotment.Pane minSize={100}>
+                    <Allotment.Pane minSize={350}>
                       <Inspector />
                     </Allotment.Pane>
                   </Allotment>
