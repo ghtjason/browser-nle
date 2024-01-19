@@ -180,7 +180,7 @@ function SliderProp({
           />
         </NumberInput>
       </div>
-      <Text color="gray.300" minW="1.2em">
+      <Text color="gray.300" minW="1.2em" fontSize="sm">
         {unit}
       </Text>
       <IconButton
@@ -230,6 +230,7 @@ function TransformProperties() {
   }
   useEffect(() => {
     canvas!.on("object:scaling", (e) => {
+      movingHandler(e); // for non-origin scaling
       scalingHandler(e);
     });
     canvas!.on("object:moving", (e) => {
