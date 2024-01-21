@@ -1,5 +1,5 @@
 import { SelectedCardContext } from "../context/SelectedCardContext";
-import { useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import {
   Box,
   Center,
@@ -91,8 +91,9 @@ interface SliderPropProps {
   unit: string;
   value: number;
   onChange: (n: number) => void;
+  handleReset?: (n: number) => void;
 }
-function SliderProp({
+const SliderProp = memo(function SliderProp({
   name,
   min,
   max,
@@ -100,6 +101,7 @@ function SliderProp({
   unit,
   value,
   onChange,
+  handleReset = onChange,
 }: SliderPropProps) {
   if (unit == "%") value *= 100;
 
@@ -159,7 +161,7 @@ function SliderProp({
         <SliderTrack bg="#4A5568">
           <CustomSliderFill max={max} origin={origin} value={value} />
         </SliderTrack>
-        <SliderThumb boxSize={3} />
+        <SliderThumb boxSize={2.5} />
       </Slider>
       <div key={value}>
         <NumberInput
@@ -177,6 +179,8 @@ function SliderProp({
             onFocus={handleFocus}
             onBlur={handleBlur}
             onChange={(e) => handleEdit(e)}
+            textAlign="right"
+            borderRadius="md"
           />
         </NumberInput>
       </div>
@@ -190,7 +194,7 @@ function SliderProp({
         aria-label="revert"
         icon={<IconArrowBackUp size="1.1em" />}
         onClick={() => {
-          onChange(origin);
+          handleReset(origin);
         }}
         variant="none"
         transitionDuration="100ms"
@@ -198,7 +202,47 @@ function SliderProp({
       />
     </HStack>
   );
+});
+
+function PropertyPanel({
+  name,
+  children,
+}: {
+  name: string;
+  children: JSX.Element | JSX.Element[];
+}) {
+  return (
+    <AccordionItem border="none">
+      <AccordionButton height={6} mt={4}>
+        <Text flex="1" textAlign="left" fontSize="sm" fontWeight="bold">
+          {name}
+        </Text>
+        <AccordionIcon />
+      </AccordionButton>
+      <AccordionPanel>
+        <Box
+          borderRadius="md"
+          // borderWidth={1}
+          backgroundColor="#2D3748"
+        >
+          <VStack
+            padding={2}
+            divider={
+              <StackDivider
+                borderColor="gray.800"
+                borderWidth={0}
+                marginRight={10}
+              />
+            }
+          >
+            {children}
+          </VStack>
+        </Box>
+      </AccordionPanel>
+    </AccordionItem>
+  );
 }
+
 function TransformProperties() {
   const selectedCard = useContext(SelectedCardContext);
   const [canvas] = useContext(FabricContext);
@@ -241,112 +285,129 @@ function TransformProperties() {
     });
   }, [canvas]);
 
+  function updateObjects() {
+    if (!selectedCard || !selectedCard.fabricObject || !canvas) return;
+    // todo: utilize fabricobject.set
+
+    selectedCard.fabricObject.left = x;
+    selectedCard.x = x;
+    selectedCard.fabricObject.top = y;
+    selectedCard.y = y;
+
+    selectedCard.fabricObject.scaleX = scaleX;
+    selectedCard.fabricObject.flipX = flipX;
+    selectedCard.scaleX = scaleX;
+    selectedCard.flipX = flipX;
+
+    selectedCard.fabricObject.scaleY = scaleY;
+    selectedCard.fabricObject.flipY = flipY;
+    selectedCard.scaleY = scaleY;
+    selectedCard.flipY = flipY;
+
+    selectedCard.fabricObject.angle = angle;
+    selectedCard.angle = angle;
+
+    canvas.requestRenderAll();
+  }
+
+  updateObjects();
+
   return (
-    <AccordionItem border="none">
-      <AccordionButton height={6} mt={4}>
-        <Text flex="1" textAlign="left" fontSize="sm" fontWeight="bold">
-          Transform
-        </Text>
-        <AccordionIcon />
-      </AccordionButton>
-      <AccordionPanel>
-        <Box
-          borderRadius="md"
-          // borderWidth={1}
-          backgroundColor="#2D3748"
-        >
-          <VStack
-            padding={2}
-            divider={
-              <StackDivider
-                borderColor="gray.800"
-                borderWidth={0}
-                marginRight={10}
-              />
-            }
-          >
-            <SliderProp
-              name="x"
-              min={0}
-              max={1920}
-              origin={960}
-              unit="px"
-              value={x}
-              onChange={(n) => {
-                setX(n);
-                selectedCard!.fabricObject!.left = n;
-                selectedCard!.x = n;
-                canvas?.requestRenderAll();
-              }}
-            />
-            <SliderProp
-              name="y"
-              min={0}
-              max={1080}
-              origin={540}
-              unit="px"
-              value={y}
-              onChange={(n) => {
-                setY(n);
-                selectedCard!.fabricObject!.top = n;
-                selectedCard!.y = n;
-                canvas?.requestRenderAll();
-              }}
-            />
-            <SliderProp
-              name="Scale X"
-              min={0}
-              max={400}
-              origin={100}
-              unit="%"
-              value={realScaleX}
-              onChange={(n) => {
-                setScaleX(Math.abs(n) / 100);
-                setFlipX(n < 0);
-                selectedCard!.fabricObject!.scaleX = Math.abs(n) / 100;
-                selectedCard!.fabricObject!.flipX = n < 0;
-                selectedCard!.scaleX = selectedCard!.fabricObject!.scaleX;
-                selectedCard!.flipX = selectedCard!.fabricObject!.flipX;
-                canvas?.requestRenderAll();
-              }}
-            />
-            <SliderProp
-              name="Scale Y"
-              min={0}
-              max={400}
-              origin={100}
-              unit="%"
-              value={realScaleY}
-              onChange={(n) => {
-                setScaleY(Math.abs(n) / 100);
-                setFlipY(n < 0);
-                selectedCard!.fabricObject!.scaleY = Math.abs(n) / 100;
-                selectedCard!.fabricObject!.flipY = n < 0;
-                selectedCard!.scaleY = selectedCard!.fabricObject!.scaleY;
-                selectedCard!.flipY = selectedCard!.fabricObject!.flipY;
-                canvas?.requestRenderAll();
-              }}
-            />
-            <SliderProp
-              name="Rotation"
-              min={0}
-              max={360}
-              origin={0}
-              unit="°"
-              value={angle}
-              onChange={(n) => {
-                setAngle(n);
-                selectedCard!.fabricObject!.angle = n;
-                selectedCard!.angle = n;
-                canvas?.requestRenderAll();
-              }}
-            />
-          </VStack>
-        </Box>
-      </AccordionPanel>
-    </AccordionItem>
+    <PropertyPanel name="Transform">
+      <SliderProp
+        name="x"
+        min={0}
+        max={1920}
+        origin={960}
+        unit="px"
+        value={x}
+        onChange={(n) => {
+          setX(n);
+        }}
+      />
+      <SliderProp
+        name="y"
+        min={0}
+        max={1080}
+        origin={540}
+        unit="px"
+        value={y}
+        onChange={(n) => {
+          setY(n);
+        }}
+      />
+      <SliderProp
+        name="Scale (All)"
+        min={0.0001}
+        max={400}
+        origin={100}
+        unit="%"
+        value={Math.max(realScaleX, realScaleY)}
+        onChange={(n) => {
+          const scale = Math.max(realScaleX, realScaleY);
+          const newScaleX = scale == 0 ? n : (n / scale) * scaleX;
+          const newScaleY = scale == 0 ? n : (n / scale) * scaleY;
+          setScaleX(Math.abs(newScaleX) / 100);
+          setScaleY(Math.abs(newScaleY) / 100);
+          setFlipX(newScaleX < 0);
+          setFlipY(newScaleY < 0);
+        }}
+        handleReset={(n) => {
+          setScaleX(n / 100);
+          setScaleY(n / 100);
+          setFlipX(false);
+          setFlipY(false);
+        }}
+      />
+      <SliderProp
+        name="Scale X"
+        min={0}
+        max={400}
+        origin={100}
+        unit="%"
+        value={realScaleX}
+        onChange={(n) => {
+          setScaleX(Math.abs(n) / 100);
+          setFlipX(n < 0);
+        }}
+      />
+      <SliderProp
+        name="Scale Y"
+        min={0}
+        max={400}
+        origin={100}
+        unit="%"
+        value={realScaleY}
+        onChange={(n) => {
+          setScaleY(Math.abs(n) / 100);
+          setFlipY(n < 0);
+        }}
+      />
+      <SliderProp
+        name="Rotation"
+        min={0}
+        max={360}
+        origin={0}
+        unit="°"
+        value={angle}
+        onChange={(n) => {
+          setAngle(n);
+        }}
+      />
+    </PropertyPanel>
   );
 }
+
+// function CompositingProperties() {
+//   const selectedCard = useContext(SelectedCardContext);
+//   const [opacity, setOpacity] = useState(selectedCard?.fabricObject?.opacity)
+//   return (
+//   <PropertyPanel name="Compositing">
+
+//   </PropertyPanel>
+//   )
+// }
+
 function GeneralProperties() {
   return (
     <Accordion defaultIndex={[0, 1]} allowMultiple>

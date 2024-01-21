@@ -70,8 +70,8 @@ export default function Timeline() {
       canvas.setBackgroundColor("black", () => {});
       for (const i of reversedMedia) {
         const fabricImage = new fabric.Image(i.media.element, {
-          // top: i.y,
-          // left: i.x,
+          top: i.y,
+          left: i.x,
           originX: "center",
           originY: "center",
           angle: i.angle,
@@ -88,9 +88,6 @@ export default function Timeline() {
             media: i,
           };
         };
-        canvas.viewportCenterObject(fabricImage)
-        i.x = fabricImage.left!;
-        i.y = fabricImage.top!;
         i.fabricObject = fabricImage;
         canvas.add(fabricImage);
       }
