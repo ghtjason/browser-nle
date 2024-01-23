@@ -29,6 +29,7 @@ export default function Player() {
         width: 1920,
         preserveObjectStacking: true,
         selection: false,
+        backgroundColor: "black",
       };
       const canvas = new fabric.Canvas(canvasEl.current, options);
       initCanvas(canvas);

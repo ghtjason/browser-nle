@@ -151,13 +151,6 @@ export class VideoMedia extends BaseMedia {
 export abstract class MediaTimeline {
   start: number = 0;
   abstract end: number;
-  x: number = 960;
-  y: number = 540;
-  angle: number = 0;
-  scaleX: number = 1;
-  scaleY: number = 1;
-  flipX: boolean = false;
-  flipY: boolean = false;
   fabricObject: fabric.Object | null = null;
   abstract media: BaseMedia;
   constructor() {}

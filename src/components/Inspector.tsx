@@ -244,17 +244,42 @@ function PropertyPanel({
 }
 
 function TransformProperties() {
-  const selectedCard = useContext(SelectedCardContext);
   const [canvas] = useContext(FabricContext);
-  const [x, setX] = useState(selectedCard!.x);
-  const [y, setY] = useState(selectedCard!.y);
-  const [scaleX, setScaleX] = useState(selectedCard!.scaleX);
-  const [scaleY, setScaleY] = useState(selectedCard!.scaleY);
-  const [angle, setAngle] = useState(selectedCard!.angle);
-  const [flipX, setFlipX] = useState(selectedCard!.flipX);
-  const [flipY, setFlipY] = useState(selectedCard!.flipY);
+  const selectedCard = useContext(SelectedCardContext);
+  const [fabricObject, setFabricObject] = useState(selectedCard!.fabricObject!);
+  const [x, setX] = useState<number>(fabricObject!.left!);
+  const [y, setY] = useState<number>(fabricObject!.top!);
+  const [scaleX, setScaleX] = useState<number>(fabricObject!.scaleX!);
+  const [scaleY, setScaleY] = useState<number>(fabricObject!.scaleY!);
+  const [angle, setAngle] = useState<number>(fabricObject!.angle!);
+  const [flipX, setFlipX] = useState<boolean>(fabricObject!.flipX!);
+  const [flipY, setFlipY] = useState<boolean>(fabricObject!.flipY!);
   const realScaleX = flipX ? -scaleX : scaleX;
   const realScaleY = flipY ? -scaleY : scaleY;
+  useEffect(() => {
+    const newFabricObject = selectedCard!.fabricObject!;
+    setX(newFabricObject.left!);
+    setY(newFabricObject.top!);
+    setScaleX(newFabricObject.scaleX!);
+    setScaleY(newFabricObject.scaleY!);
+    setAngle(newFabricObject.angle!);
+    setFlipX(newFabricObject.flipX!);
+    setFlipY(newFabricObject.flipY!);
+    setFabricObject(newFabricObject);
+  }, [selectedCard, fabricObject, setFabricObject]);
+
+  useEffect(() => {
+    // todo: utilize fabricobject.set
+    if (!fabricObject || !canvas) return;
+    fabricObject.left = x;
+    fabricObject.top = y;
+    fabricObject.scaleX = scaleX;
+    fabricObject.flipX = flipX;
+    fabricObject.scaleY = scaleY;
+    fabricObject.flipY = flipY;
+    fabricObject.angle = angle;
+    canvas.requestRenderAll();
+  }, [angle, canvas, fabricObject, flipX, flipY, scaleX, scaleY, x, y]);
 
   function scalingHandler(e: fabric.IEvent<MouseEvent>) {
     const fabricObject = e.target!;
@@ -284,33 +309,6 @@ function TransformProperties() {
       rotationHandler(e);
     });
   }, [canvas]);
-
-  function updateObjects() {
-    if (!selectedCard || !selectedCard.fabricObject || !canvas) return;
-    // todo: utilize fabricobject.set
-
-    selectedCard.fabricObject.left = x;
-    selectedCard.x = x;
-    selectedCard.fabricObject.top = y;
-    selectedCard.y = y;
-
-    selectedCard.fabricObject.scaleX = scaleX;
-    selectedCard.fabricObject.flipX = flipX;
-    selectedCard.scaleX = scaleX;
-    selectedCard.flipX = flipX;
-
-    selectedCard.fabricObject.scaleY = scaleY;
-    selectedCard.fabricObject.flipY = flipY;
-    selectedCard.scaleY = scaleY;
-    selectedCard.flipY = flipY;
-
-    selectedCard.fabricObject.angle = angle;
-    selectedCard.angle = angle;
-
-    canvas.requestRenderAll();
-  }
-
-  updateObjects();
 
   return (
     <PropertyPanel name="Transform">

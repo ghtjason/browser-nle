@@ -20,18 +20,56 @@ import {
 } from "../context/TimelineMediaContext";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { TimeRatioContext } from "../context/TimeContext";
+import { fabric } from "fabric";
 
 export default function MediaCard({ img }: { img: BaseMedia }) {
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
+  const selectCard = useContext(SelectCardContext);
+  const [canvas] = useContext(FabricContext);
+
   function addMediaToTimeline() {
+    let newTimelineMedia: MediaTimeline;
     if (img instanceof ImageMedia) {
-      const timelineImage = new ImageMediaTimeline(img);
-      setTimelineMedia([...timelineMedia, timelineImage]);
+      console.log('created new imageMedia')
+      newTimelineMedia = new ImageMediaTimeline(img);
+      setTimelineMedia([...timelineMedia, newTimelineMedia]);
     } else if (img instanceof VideoMedia) {
-      const timelineVideo = new VideoMediaTimeline(img);
-      setTimelineMedia([...timelineMedia, timelineVideo]);
+      newTimelineMedia = new VideoMediaTimeline(img);
+      setTimelineMedia([...timelineMedia, newTimelineMedia]);
     }
+    function updateCanvas() {
+      const container = document.getElementById("playerContainer");
+      if (container && canvas) {
+        const fabricImage = new fabric.Image(img.element, {
+          top: 540,
+          left: 960,
+          originX: "center",
+          originY: "center",
+          angle: 0,
+          scaleX: 1,
+          scaleY: 1,
+          centeredScaling: true,
+          objectCaching: true,
+        });
+        fabricImage.on("selected", () => {
+          selectCard(newTimelineMedia);
+        });
+        fabricImage.toObject = function () {
+          return {
+            media: newTimelineMedia,
+          };
+        };
+        newTimelineMedia.fabricObject = fabricImage;
+        canvas.add(fabricImage);
+        canvas.requestRenderAll();
+        // canvas.on("object:modified", (e) => {
+        //   modifiedHandler(e, e.target?.toObject().media);
+        // });
+      }
+    }
+    updateCanvas();
   }
+
   return (
     <Box
       width="140px"
@@ -131,6 +169,7 @@ export function TimelineMediaCard(props: IProps) {
         document.removeEventListener("mousemove", handleMouseMove);
         refreshSnapTimes();
         setMovedTrack(-1);
+        handleClick();
       };
       function canChangeTrack(a: number, b: number) {
         const len = timelineMediaCopy.length;
