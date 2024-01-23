@@ -44,58 +44,6 @@ export default function Timeline() {
       document.removeEventListener("keydown", processKey);
     };
   }, [canvas, selectCard, setTimelineMedia, timelineMedia]);
-  // const reversedMedia = timelineMedia.slice().reverse();
-  // function modifiedHandler(e: fabric.IEvent<MouseEvent>, m: MediaTimeline) {
-  //   const mediaObject = m;
-  //   const fabricObject = e.target;
-  //   if (fabricObject) {
-  //     mediaObject.x = fabricObject.left!;
-  //     mediaObject.y = fabricObject.top!;
-  //     mediaObject.scaleX = fabricObject.scaleX!;
-  //     mediaObject.scaleY = fabricObject.scaleY!;
-  //     mediaObject.angle = fabricObject.angle!;
-  //     mediaObject.flipX = fabricObject.flipX!;
-  //     mediaObject.flipY = fabricObject.flipY!;
-  //   }
-  // }
-  // function selectedHandler(mediaObject: MediaTimeline) {
-  //   selectCard(mediaObject);
-  // }
-
-  // function updateCanvas() {
-  //   const container = document.getElementById("playerContainer");
-  //   if (container && canvas) {
-  //     canvas.clear();
-  //     canvas.setBackgroundColor("black", () => {});
-  //     for (const i of reversedMedia) {
-  //       const fabricImage = new fabric.Image(i.media.element, {
-  //         top: i.y,
-  //         left: i.x,
-  //         originX: "center",
-  //         originY: "center",
-  //         angle: i.angle,
-  //         scaleX: i.scaleX,
-  //         scaleY: i.scaleY,
-  //         centeredScaling: true,
-  //         objectCaching: true,
-  //       });
-  //       fabricImage.on("selected", () => {
-  //         selectedHandler(i);
-  //       });
-  //       fabricImage.toObject = function () {
-  //         return {
-  //           media: i,
-  //         };
-  //       };
-  //       i.fabricObject = fabricImage;
-  //       canvas.add(fabricImage);
-  //     }
-  //     canvas.on("object:modified", (e) => {
-  //       modifiedHandler(e, e.target?.toObject().media);
-  //     });
-  //   }
-  // }
-  // updateCanvas();
 
   function RenderImageCards() {
     return (

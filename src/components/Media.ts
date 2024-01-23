@@ -153,14 +153,17 @@ export abstract class MediaTimeline {
   abstract end: number;
   fabricObject: fabric.Object | null = null;
   abstract media: BaseMedia;
-  constructor() {}
+  key: number;
+  constructor(key: number) {
+    this.key = key;
+  }
 }
 
 export class ImageMediaTimeline extends MediaTimeline {
   end: number = 4000;
   media: ImageMedia;
-  constructor(img: ImageMedia) {
-    super();
+  constructor(img: ImageMedia, key: number) {
+    super(key);
     this.media = img;
   }
 }
@@ -169,8 +172,8 @@ export class VideoMediaTimeline extends MediaTimeline {
   end: number;
   media: VideoMedia;
   offsetStart: number;
-  constructor(vid: VideoMedia) {
-    super();
+  constructor(vid: VideoMedia, key: number) {
+    super(key);
     this.media = vid;
     this.end = vid.duration * 1000;
     this.offsetStart = 0;

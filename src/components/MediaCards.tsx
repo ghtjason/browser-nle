@@ -7,7 +7,7 @@ import {
   VideoMedia,
   VideoMediaTimeline,
 } from "./Media";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   SelectCardContext,
   SelectedCardContext,
@@ -29,12 +29,13 @@ export default function MediaCard({ img }: { img: BaseMedia }) {
 
   function addMediaToTimeline() {
     let newTimelineMedia: MediaTimeline;
+    const key = timelineMedia.length;
     if (img instanceof ImageMedia) {
-      console.log('created new imageMedia')
-      newTimelineMedia = new ImageMediaTimeline(img);
+      console.log("created new imageMedia");
+      newTimelineMedia = new ImageMediaTimeline(img, key);
       setTimelineMedia([...timelineMedia, newTimelineMedia]);
     } else if (img instanceof VideoMedia) {
-      newTimelineMedia = new VideoMediaTimeline(img);
+      newTimelineMedia = new VideoMediaTimeline(img, key);
       setTimelineMedia([...timelineMedia, newTimelineMedia]);
     }
     function updateCanvas() {
@@ -62,9 +63,6 @@ export default function MediaCard({ img }: { img: BaseMedia }) {
         newTimelineMedia.fabricObject = fabricImage;
         canvas.add(fabricImage);
         canvas.requestRenderAll();
-        // canvas.on("object:modified", (e) => {
-        //   modifiedHandler(e, e.target?.toObject().media);
-        // });
       }
     }
     updateCanvas();
@@ -113,7 +111,9 @@ export function TimelineMediaCard(props: IProps) {
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
 
   if (offset != props.media.start / ratio) setOffset(props.media.start / ratio); // weird workaround for mouse move rendering
-
+  useEffect(() => {
+    props.media.fabricObject?.moveTo(timelineMedia.length - props.track - 1);
+  }, [props.media.fabricObject, props.media.media.name, props.track, timelineMedia.length])
   const handleTrackChangeRender = useCallback(() => {
     const handleMouseUp = () => {
       setHasHandledChange(true);
