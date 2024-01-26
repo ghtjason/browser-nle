@@ -6,21 +6,91 @@ import {
   TabPanel,
   Wrap,
   WrapItem,
+  Box,
+  Heading,
 } from "@chakra-ui/react";
-import { IconButton, Icon } from "@chakra-ui/react";
+import { IconButton, Icon, Image } from "@chakra-ui/react";
 import {
   IconSquarePlus,
   IconFolder,
   IconSquareLetterT,
 } from "@tabler/icons-react";
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import {
   BaseMedia,
   ImageMedia,
+  ImageMediaTimeline,
+  MediaTimeline,
   VideoMedia,
+  VideoMediaTimeline,
 } from "./Media";
+import { fabric } from "fabric";
+import { v4 as uuidv4 } from 'uuid';
 import { useState } from "react";
-import MediaCard from "./MediaCards";
+import { FabricContext } from "../context/FabricContext";
+import { SelectCardContext } from "../context/SelectedCardContext";
+import { TimelineMediaContext } from "../context/TimelineMediaContext";
+
+function MediaCard({ img }: { img: BaseMedia }) {
+  const [, setTimelineMedia] = useContext(TimelineMediaContext);
+  const selectCard = useContext(SelectCardContext);
+  const [canvas] = useContext(FabricContext);
+
+  function addMediaToTimeline() {
+    let newTimelineMedia: MediaTimeline;
+    const key = uuidv4();
+    if (img instanceof ImageMedia) {
+      newTimelineMedia = new ImageMediaTimeline(img, key);
+      setTimelineMedia((timelineMedia) => [...timelineMedia, newTimelineMedia]);
+    } else if (img instanceof VideoMedia) {
+      newTimelineMedia = new VideoMediaTimeline(img, key);
+      setTimelineMedia((timelineMedia) => [...timelineMedia, newTimelineMedia]);
+    }
+    function updateCanvas() {
+      const container = document.getElementById("playerContainer");
+      if (container && canvas) {
+        const fabricImage = new fabric.Image(img.element, {
+          top: 540,
+          left: 960,
+          originX: "center",
+          originY: "center",
+          angle: 0,
+          scaleX: 1,
+          scaleY: 1,
+          centeredScaling: true,
+          objectCaching: true,
+        });
+        fabricImage.on("selected", () => {
+          selectCard(newTimelineMedia);
+        });
+        fabricImage.toObject = function () {
+          return {
+            media: newTimelineMedia,
+          };
+        };
+        newTimelineMedia.fabricObject = fabricImage;
+        canvas.add(fabricImage);
+        canvas.requestRenderAll();
+      }
+    }
+    updateCanvas();
+  }
+
+  return (
+    <Box
+      width="140px"
+      borderWidth={1}
+      borderRadius="lg"
+      overflow="hidden"
+      onClick={addMediaToTimeline}
+    >
+      <Image src={img.thumbnailURL} alt={img.name} />
+      <Heading size="xs" isTruncated={true} padding="6px">
+        {img.name}
+      </Heading>
+    </Box>
+  );
+}
 
 export default function Library() {
   const [images, setImages] = useState<BaseMedia[]>([]);

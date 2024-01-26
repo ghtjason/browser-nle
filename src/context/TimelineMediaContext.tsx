@@ -1,8 +1,7 @@
 import { createContext, useState } from "react";
 import { MediaTimeline } from "../components/Media";
 
-type MovedTrackContext = [number, (n: number) => void];
-type TlMediaContext = [MediaTimeline[], (media: MediaTimeline[]) => void];
+type TlMediaContext = [MediaTimeline[], React.Dispatch<React.SetStateAction<MediaTimeline[]>>];
 type SnapTimesContext = [number[], () => void];
 
 export const TimelineMediaContext = createContext<TlMediaContext>([
@@ -12,10 +11,6 @@ export const TimelineMediaContext = createContext<TlMediaContext>([
 
 export const SnapTimesContext = createContext<SnapTimesContext>([[], () => {}]);
 
-export const MovedTrackContext = createContext<MovedTrackContext>([
-  0,
-  () => {},
-]);
 
 export const AppendContext = createContext<(t: MediaTimeline) => void>(
   () => {}
@@ -26,7 +21,6 @@ export const TimelineMediaContextProvider = (props: {
 }): JSX.Element => {
   const [timelineMedia, setTimelineMedia] = useState<MediaTimeline[]>([]);
 
-  const [movedTrack, setMovedTrack] = useState(-1);
   // array instead of Set because snapTimes is also used to track media start/end changes
   const [snapTimes, setSnapTimes] = useState<number[]>([]);
   function refreshSnapTimes() {
@@ -47,9 +41,7 @@ export const TimelineMediaContextProvider = (props: {
   return (
     <TimelineMediaContext.Provider value={[timelineMedia, setTimelineMedia]}>
       <SnapTimesContext.Provider value={[snapTimes, refreshSnapTimes]}>
-        <MovedTrackContext.Provider value={[movedTrack, setMovedTrack]}>
           {props.children}
-        </MovedTrackContext.Provider>
       </SnapTimesContext.Provider>
     </TimelineMediaContext.Provider>
   );

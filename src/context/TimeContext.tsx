@@ -9,7 +9,7 @@ type PlayContext = [
   boolean,
   (t: number) => void
 ];
-type NumberStateContext = [number, (n: number) => void];
+type NumberStateContext = [number, React.Dispatch<React.SetStateAction<number>>];
 
 // This is the context that components in need of canvas-access will use:
 export const TimeContext = createContext<number>(0);

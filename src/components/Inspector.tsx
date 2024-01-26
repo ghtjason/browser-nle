@@ -256,6 +256,8 @@ function TransformProperties() {
   const [flipY, setFlipY] = useState<boolean>(fabricObject!.flipY!);
   const realScaleX = flipX ? -scaleX : scaleX;
   const realScaleY = flipY ? -scaleY : scaleY;
+
+  // forcing state reset with key causes slider flicker, workaround
   useEffect(() => {
     const newFabricObject = selectedCard!.fabricObject!;
     setX(newFabricObject.left!);

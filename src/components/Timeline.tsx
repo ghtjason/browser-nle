@@ -3,11 +3,29 @@ import {
   SnapTimesContext,
   TimelineMediaContext,
 } from "../context/TimelineMediaContext";
-import { TimelineMediaCard } from "./MediaCards";
+import TimelineMediaCard from "./TimelineMediaCard";
 import { Stack } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 import Playhead from "./Playhead";
 import { FabricContext } from "../context/FabricContext";
+
+function RenderImageCards() {
+  const [timelineMedia] = useContext(TimelineMediaContext);
+  return (
+    <>
+      <Stack padding="26px 14px" height="100%">
+        {timelineMedia.map((media, index) => (
+          <TimelineMediaCard
+            key={media.key}
+            media={media}
+            height={75}
+            track={index}
+          />
+        ))}
+      </Stack>
+    </>
+  );
+}
 
 export default function Timeline() {
   const selectCard = useContext(SelectCardContext);
@@ -20,9 +38,9 @@ export default function Timeline() {
   useEffect(() => {
     function DeleteCard() {
       if (canvas && canvas.getActiveObject()) {
-        setTimelineMedia(
+        setTimelineMedia((timelineMedia) =>
           timelineMedia.filter(
-            (media) => media !== canvas.getActiveObject()!.toObject().media
+            (media) => media !== canvas.getActiveObject()?.toObject().media
           )
         );
         canvas.remove(canvas.getActiveObject()!);
@@ -44,23 +62,6 @@ export default function Timeline() {
       document.removeEventListener("keydown", processKey);
     };
   }, [canvas, selectCard, setTimelineMedia, timelineMedia]);
-
-  function RenderImageCards() {
-    return (
-      <>
-        <Stack padding="26px 14px" height="100%">
-          {timelineMedia.map((media, index) => (
-            <TimelineMediaCard
-              media={media}
-              height={75}
-              track={index}
-              key={index}
-            />
-          ))}
-        </Stack>
-      </>
-    );
-  }
 
   return (
     <div>
