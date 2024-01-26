@@ -78,36 +78,36 @@ const Playhead = memo(function Playhead() {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
           if (i instanceof VideoMediaTimeline) {
-            i.media.element.pause();
+            i.element.pause();
             if (elapsedTime < i.end)
               // weird flashing bug when not meant to be visible
-              i.media.element.currentTime = i.offsetStart / 1000;
+              i.element.currentTime = i.offsetStart / 1000;
           }
         } else {
           i.fabricObject.visible = true;
-          if (i instanceof VideoMediaTimeline && i.media.element.paused) {
-            i.media.element.play(); // assume time has been seeked to correct location
+          if (i instanceof VideoMediaTimeline && i.element.paused) {
+            i.element.play(); // assume time has been seeked to correct location
           }
         }
       } else {
         if (elapsedTime >= i.end || elapsedTime < i.start) {
           i.fabricObject.visible = false;
           if (i instanceof VideoMediaTimeline) {
-            i.media.element.onseeked = () => {
+            i.element.onseeked = () => {
               i.fabricObject!.visible = false;
               if (canvas && canvas.getContext()) canvas.renderAll();
             };
-            i.media.element.pause();
-            i.media.element.currentTime = 0;
+            i.element.pause();
+            i.element.currentTime = 0;
           }
         } else {
           if (i instanceof VideoMediaTimeline) {
-            i.media.element.onseeked = () => {
+            i.element.onseeked = () => {
               i.fabricObject!.visible = true;
               if (canvas && canvas.getContext()) canvas.renderAll();
             };
-            i.media.element.pause();
-            i.media.element.currentTime =
+            i.element.pause();
+            i.element.currentTime =
               (elapsedTime - i.start + i.offsetStart) / 1000;
           } else i.fabricObject.visible = true;
         }

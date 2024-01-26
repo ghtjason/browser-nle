@@ -5,7 +5,6 @@ export abstract class BaseMedia {
   abstract thumbnailURL: string;
   abstract width: number;
   abstract height: number;
-  abstract element: HTMLImageElement | HTMLVideoElement;
 
   constructor(file: File) {
     this.name = file.name;
@@ -43,13 +42,11 @@ export class ImageMedia extends BaseMedia {
   thumbnailURL!: string;
   width!: number;
   height!: number;
-  element!: HTMLImageElement;
 
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
     super(file);
     const img = new Image();
     img.onload = () => {
-      this.element = img;
       this.width = img.naturalWidth;
       this.height = img.naturalHeight;
       drawThumbnail(img, this, updateArray);
@@ -119,7 +116,6 @@ export class VideoMedia extends BaseMedia {
   width!: number;
   height!: number;
   duration!: number;
-  element!: HTMLVideoElement;
   audioWaveform!: string;
 
   constructor(file: File, updateArray: (arg0: BaseMedia) => void) {
@@ -133,7 +129,6 @@ export class VideoMedia extends BaseMedia {
       () => {
         video.width = video.videoWidth;
         video.height = video.videoHeight;
-        this.element = video;
         this.width = video.videoWidth;
         this.height = video.videoHeight;
         this.duration = video.duration;
@@ -154,6 +149,8 @@ export abstract class MediaTimeline {
   fabricObject: fabric.Object | null = null;
   abstract media: BaseMedia;
   key: string;
+  abstract element: HTMLImageElement | HTMLVideoElement;
+
   constructor(key: string) {
     this.key = key;
   }
@@ -162,9 +159,14 @@ export abstract class MediaTimeline {
 export class ImageMediaTimeline extends MediaTimeline {
   end: number = 4000;
   media: ImageMedia;
+  element: HTMLImageElement;
+
   constructor(img: ImageMedia, key: string) {
     super(key);
     this.media = img;
+    const image = new Image();
+    image.src = img.objectURL;
+    this.element = image;
   }
 }
 
@@ -172,10 +174,24 @@ export class VideoMediaTimeline extends MediaTimeline {
   end: number;
   media: VideoMedia;
   offsetStart: number;
-  constructor(vid: VideoMedia, key: string) {
+  element!: HTMLVideoElement;
+
+  constructor(vid: VideoMedia, key: string, videoLoaded: () => void) {
     super(key);
     this.media = vid;
     this.end = vid.duration * 1000;
     this.offsetStart = 0;
+    const video = document.createElement("video");
+    video.addEventListener(
+      "loadeddata",
+      () => {
+        video.width = video.videoWidth;
+        video.height = video.videoHeight;
+        this.element = video;
+        videoLoaded();
+      },
+      { once: true }
+    );
+    video.src = vid.objectURL;
   }
 }

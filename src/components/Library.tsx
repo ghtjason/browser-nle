@@ -25,7 +25,7 @@ import {
   VideoMediaTimeline,
 } from "./Media";
 import { fabric } from "fabric";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import { FabricContext } from "../context/FabricContext";
 import { SelectCardContext } from "../context/SelectedCardContext";
@@ -42,14 +42,15 @@ function MediaCard({ img }: { img: BaseMedia }) {
     if (img instanceof ImageMedia) {
       newTimelineMedia = new ImageMediaTimeline(img, key);
       setTimelineMedia((timelineMedia) => [...timelineMedia, newTimelineMedia]);
+      updateCanvas();
     } else if (img instanceof VideoMedia) {
-      newTimelineMedia = new VideoMediaTimeline(img, key);
+      newTimelineMedia = new VideoMediaTimeline(img, key, () => updateCanvas());
       setTimelineMedia((timelineMedia) => [...timelineMedia, newTimelineMedia]);
     }
     function updateCanvas() {
       const container = document.getElementById("playerContainer");
       if (container && canvas) {
-        const fabricImage = new fabric.Image(img.element, {
+        const fabricImage = new fabric.Image(newTimelineMedia.element, {
           top: 540,
           left: 960,
           originX: "center",
@@ -73,7 +74,6 @@ function MediaCard({ img }: { img: BaseMedia }) {
         canvas.requestRenderAll();
       }
     }
-    updateCanvas();
   }
 
   return (
