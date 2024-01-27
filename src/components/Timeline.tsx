@@ -29,7 +29,7 @@ function RenderImageCards() {
 
 export default function Timeline() {
   const selectCard = useContext(SelectCardContext);
-  const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
+  const [, setTimelineMedia] = useContext(TimelineMediaContext);
   const [, refreshSnapTimes] = useContext(SnapTimesContext);
   const [canvas] = useContext(FabricContext);
   const selectedCard = useContext(SelectedCardContext)
