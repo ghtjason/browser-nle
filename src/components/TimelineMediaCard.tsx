@@ -201,6 +201,18 @@ const TimelineMediaCard = memo((props: IProps) => {
     return diff;
   }
 
+  function easeBackInPlace(val: number) {
+    console.log(val);
+    const multiplier = 0.4;
+    if (val > 0.5) {
+      setTopOffset((topOffset) => Math.max(0, topOffset * multiplier));
+      setBottomOffset((bottomOffset) => Math.max(0, bottomOffset * multiplier));
+      setTimeout(() => {
+        easeBackInPlace(val * multiplier);
+      }, 0);
+    }
+  }
+
   const cardMid = useRef(0);
   // props.track and tlmedia not properly updating inside
   const track = useRef(props.track);
@@ -212,12 +224,16 @@ const TimelineMediaCard = memo((props: IProps) => {
     const ogStart = start;
     const ogEnd = end;
     setZIndex(2);
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      console.log("mouseup");
       document.removeEventListener("mousemove", handleMouseMove);
       setLeftHighlighted(false);
       setRightHighlighted(false);
-      setTopOffset(0);
-      setBottomOffset(0);
+      easeBackInPlace(
+        Math.abs(
+          ((cardMid.current - e.pageY) / (spacing + props.height)) * maxOffset
+        )
+      );
       setZIndex(1);
       refreshSnapTimes();
       handleClick();
