@@ -202,15 +202,16 @@ const TimelineMediaCard = memo((props: IProps) => {
   }
 
   function easeBackInPlace(val: number) {
-    console.log(val);
-    const multiplier = 0.4;
-    if (val > 0.5) {
-      setTopOffset((topOffset) => Math.max(0, topOffset * multiplier));
-      setBottomOffset((bottomOffset) => Math.max(0, bottomOffset * multiplier));
-      setTimeout(() => {
-        easeBackInPlace(val * multiplier);
-      }, 0);
+    function reduceVal(n: number) {
+      return n * 0.5;
     }
+    if (val > 0.5) {
+      setTopOffset((topOffset) => Math.max(0, reduceVal(topOffset)));
+      setBottomOffset((bottomOffset) => Math.max(0, reduceVal(bottomOffset)));
+      setTimeout(() => {
+        easeBackInPlace(reduceVal(val));
+      }, 0);
+    } else setZIndex(1);
   }
 
   const cardMid = useRef(0);
@@ -225,7 +226,6 @@ const TimelineMediaCard = memo((props: IProps) => {
     const ogEnd = end;
     setZIndex(2);
     const handleMouseUp = (e: MouseEvent) => {
-      console.log("mouseup");
       document.removeEventListener("mousemove", handleMouseMove);
       setLeftHighlighted(false);
       setRightHighlighted(false);
@@ -234,7 +234,6 @@ const TimelineMediaCard = memo((props: IProps) => {
           ((cardMid.current - e.pageY) / (spacing + props.height)) * maxOffset
         )
       );
-      setZIndex(1);
       refreshSnapTimes();
       handleClick();
     };

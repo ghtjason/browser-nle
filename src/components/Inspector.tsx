@@ -1,5 +1,5 @@
 import { SelectedCardContext } from "../context/SelectedCardContext";
-import { memo, useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import {
   Box,
   Center,
@@ -270,32 +270,40 @@ function TransformProperties() {
     setFabricObject(newFabricObject);
   }, [selectedCard, fabricObject, setFabricObject]);
 
+  const playerEdit = useRef(false);
   useEffect(() => {
     // todo: utilize fabricobject.set
-    if (!fabricObject || !canvas) return;
-    fabricObject.left = x;
-    fabricObject.top = y;
-    fabricObject.scaleX = scaleX;
-    fabricObject.flipX = flipX;
-    fabricObject.scaleY = scaleY;
-    fabricObject.flipY = flipY;
-    fabricObject.angle = angle;
-    canvas.requestRenderAll();
+
+    if (!playerEdit.current) {
+      if (!fabricObject || !canvas) return;
+      fabricObject.left = x;
+      fabricObject.top = y;
+      fabricObject.scaleX = scaleX;
+      fabricObject.flipX = flipX;
+      fabricObject.scaleY = scaleY;
+      fabricObject.flipY = flipY;
+      fabricObject.angle = angle;
+      canvas.requestRenderAll();
+    }
   }, [angle, canvas, fabricObject, flipX, flipY, scaleX, scaleY, x, y]);
 
   function scalingHandler(e: fabric.IEvent<MouseEvent>) {
+    playerEdit.current = true;
     const fabricObject = e.target!;
     setFlipX(fabricObject.flipX!);
     setFlipY(fabricObject.flipY!);
     setScaleX(fabricObject.scaleX!);
     setScaleY(fabricObject.scaleY!);
   }
+
   function movingHandler(e: fabric.IEvent<MouseEvent>) {
+    playerEdit.current = true;
     const fabricObject = e.target!;
     setX(fabricObject.left!);
     setY(fabricObject.top!);
   }
   function rotationHandler(e: fabric.IEvent<MouseEvent>) {
+    playerEdit.current = true;
     const fabricObject = e.target!;
     setAngle(fabricObject.angle!);
   }
@@ -309,6 +317,10 @@ function TransformProperties() {
     });
     canvas!.on("object:rotating", (e) => {
       rotationHandler(e);
+    });
+
+    canvas!.on("object:modified", () => {
+      playerEdit.current = false;
     });
   }, [canvas]);
 
@@ -398,20 +410,48 @@ function TransformProperties() {
   );
 }
 
-// function CompositingProperties() {
-//   const selectedCard = useContext(SelectedCardContext);
-//   const [opacity, setOpacity] = useState(selectedCard?.fabricObject?.opacity)
-//   return (
-//   <PropertyPanel name="Compositing">
+function CompositingProperties() {
+  const [canvas] = useContext(FabricContext);
+  const selectedCard = useContext(SelectedCardContext);
+  const [fabricObject, setFabricObject] = useState(selectedCard!.fabricObject!);
+  const [opacity, setOpacity] = useState<number>(fabricObject!.opacity!);
 
-//   </PropertyPanel>
-//   )
-// }
+  // forcing state reset with key causes slider flicker, workaround
+  useEffect(() => {
+    const newFabricObject = selectedCard!.fabricObject!;
+    setOpacity(newFabricObject!.opacity!);
+    setFabricObject(newFabricObject);
+  }, [selectedCard, fabricObject, setFabricObject]);
+
+  useEffect(() => {
+    // todo: utilize fabricobject.set
+    if (!fabricObject || !canvas) return;
+    fabricObject.opacity = opacity;
+    canvas.requestRenderAll();
+  }, [canvas, fabricObject, opacity]);
+
+  return (
+    <PropertyPanel name="Compositing">
+      <SliderProp
+        name="Opacity"
+        min={0}
+        max={100}
+        origin={100}
+        unit="%"
+        value={opacity}
+        onChange={(n) => {
+          setOpacity(n / 100);
+        }}
+      />
+    </PropertyPanel>
+  );
+}
 
 function GeneralProperties() {
   return (
     <Accordion defaultIndex={[0, 1]} allowMultiple>
       <TransformProperties />
+      <CompositingProperties />
     </Accordion>
   );
 }
