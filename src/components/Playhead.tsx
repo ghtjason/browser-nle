@@ -1,17 +1,13 @@
 import { Stack, Icon } from "@chakra-ui/react";
 import { IconTriangleInverted } from "@tabler/icons-react";
-import { memo, useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect } from "react";
 import {
   TimeContext,
   PlayContext,
   TimeRatioContext,
 } from "../context/TimeContext";
-import {
-  SnapTimesContext,
-  TimelineMediaContext,
-} from "../context/TimelineMediaContext";
+import { SnapTimesContext } from "../context/TimelineMediaContext";
 import { FabricContext } from "../context/FabricContext";
-import { VideoMediaTimeline } from "./Media";
 import { fabric } from "fabric";
 import { SelectCardContext } from "../context/SelectedCardContext";
 
@@ -22,15 +18,15 @@ const Playhead = memo(function Playhead() {
   const [, handlePause, , , isPlaying, setElapsedTime] =
     useContext(PlayContext);
 
-  const [timelineMedia] = useContext(TimelineMediaContext);
   const [canvas] = useContext(FabricContext);
-  const [updateFabric, setUpdateFabric] = useState(true);
   const setSelectedCard = useContext(SelectCardContext);
   const offset = Math.floor(5 + elapsedTime / ratio);
   // why does defining ml within icon cause rendering bugs
   const boxStyle = { marginLeft: offset };
   const color =
     !isPlaying && snapTimes.includes(elapsedTime) ? "#ECC94B" : "#E53E3E";
+
+  // if (!isPlaying) canvas?.requestRenderAll();
 
   function snapToEdge(n: number) {
     for (const snap of snapTimes) {
@@ -43,87 +39,36 @@ const Playhead = memo(function Playhead() {
     if (canvas) canvas.discardActiveObject();
     setSelectedCard(null);
     setElapsedTime(snapToEdge(time));
-    setUpdateFabric(true);
+    // canvas?.renderAll();
     handlePause();
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    let throttle: number;
     if (isPlaying) {
       handleClick(e);
       return;
     }
     const handleMouseUp = () => {
       document.removeEventListener("mousemove", handleMouseMove);
+      // canvas?.renderAll();
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (throttle) clearTimeout(throttle);
-      // mouse must be still for 60ms before updating canvas
-      throttle = setTimeout(() => setUpdateFabric(true), 60);
       const time = (e.pageX - 13) * ratio;
-      setUpdateFabric(false);
       setElapsedTime(snapToEdge(time));
     };
-    setUpdateFabric(false);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp, { once: true });
     handlePause();
   };
 
-  function handleTime() {
-    for (const i of timelineMedia) {
-      if (!i.fabricObject) break;
-      if (isPlaying) {
-        if (elapsedTime >= i.end || elapsedTime < i.start) {
-          i.fabricObject.visible = false;
-          if (i instanceof VideoMediaTimeline) {
-            i.element.pause();
-            if (elapsedTime < i.end)
-              // weird flashing bug when not meant to be visible
-              i.element.currentTime = i.offsetStart / 1000;
-          }
-        } else {
-          i.fabricObject.visible = true;
-          if (i instanceof VideoMediaTimeline && i.element.paused) {
-            i.element.play(); // assume time has been seeked to correct location
-          }
-        }
-      } else {
-        if (elapsedTime >= i.end || elapsedTime < i.start) {
-          i.fabricObject.visible = false;
-          if (i instanceof VideoMediaTimeline) {
-            i.element.onseeked = () => {
-              i.fabricObject!.visible = false;
-              if (canvas && canvas.getContext()) canvas.renderAll();
-            };
-            i.element.pause();
-            i.element.currentTime = 0;
-          }
-        } else {
-          if (i instanceof VideoMediaTimeline) {
-            i.element.onseeked = () => {
-              i.fabricObject!.visible = true;
-              if (canvas && canvas.getContext()) canvas.renderAll();
-            };
-            i.element.pause();
-            i.element.currentTime =
-              (elapsedTime - i.start + i.offsetStart) / 1000;
-          } else i.fabricObject.visible = true;
-        }
-        if (canvas && canvas.getContext()) canvas.renderAll();
-      }
-    }
-  }
-
-  if (updateFabric) handleTime();
   useEffect(() => {
     let recurse = true;
     function render() {
       if (!canvas || !canvas.getContext()) return;
-      canvas.renderAll();
+      canvas.requestRenderAll();
       if (!recurse || !isPlaying) return;
-      fabric.util.requestAnimFrame(render);
+      setTimeout(() => fabric.util.requestAnimFrame(render), 100 / 6); // 60 fps
     }
     render();
     return () => {
@@ -146,18 +91,18 @@ const Playhead = memo(function Playhead() {
         height="100%"
         spacing={0}
         pointerEvents="none"
-        zIndex={2}
+        zIndex={3}
       >
         <Icon as={IconTriangleInverted} color={color} boxSize="17px" />
-          <div
-            style={{
-              width: "1px",
-              backgroundColor: color,
-              height: "100%",
-              margin: "auto",
-              marginTop: 0,
-            }}
-          />
+        <div
+          style={{
+            width: "1px",
+            backgroundColor: color,
+            height: "100%",
+            margin: "auto",
+            marginTop: 0,
+          }}
+        />
       </Stack>
     </>
   );

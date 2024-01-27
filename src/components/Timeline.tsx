@@ -1,4 +1,4 @@
-import { SelectCardContext } from "../context/SelectedCardContext";
+import { SelectCardContext, SelectedCardContext } from "../context/SelectedCardContext";
 import {
   SnapTimesContext,
   TimelineMediaContext,
@@ -32,18 +32,19 @@ export default function Timeline() {
   const [timelineMedia, setTimelineMedia] = useContext(TimelineMediaContext);
   const [, refreshSnapTimes] = useContext(SnapTimesContext);
   const [canvas] = useContext(FabricContext);
+  const selectedCard = useContext(SelectedCardContext)
   useEffect(() => {
     refreshSnapTimes();
   });
   useEffect(() => {
     function DeleteCard() {
-      if (canvas && canvas.getActiveObject()) {
+      if (canvas && selectedCard?.fabricObject) {
         setTimelineMedia((timelineMedia) =>
           timelineMedia.filter(
-            (media) => media !== canvas.getActiveObject()?.toObject().media
+            (media) => media !== selectedCard
           )
         );
-        canvas.remove(canvas.getActiveObject()!);
+        canvas.remove(selectedCard.fabricObject);
         selectCard(null);
       }
     }
@@ -61,7 +62,7 @@ export default function Timeline() {
     return () => {
       document.removeEventListener("keydown", processKey);
     };
-  }, [canvas, selectCard, setTimelineMedia, timelineMedia]);
+  }, [canvas, selectCard, selectedCard, setTimelineMedia]);
 
   return (
     <div>

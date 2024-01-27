@@ -32,20 +32,25 @@ import { SelectCardContext } from "../context/SelectedCardContext";
 import { TimelineMediaContext } from "../context/TimelineMediaContext";
 
 function MediaCard({ img }: { img: BaseMedia }) {
-  const [, setTimelineMedia] = useContext(TimelineMediaContext);
-  const selectCard = useContext(SelectCardContext);
-  const [canvas] = useContext(FabricContext);
-
   function addMediaToTimeline() {
     let newTimelineMedia: MediaTimeline;
     const key = uuidv4();
     if (img instanceof ImageMedia) {
-      newTimelineMedia = new ImageMediaTimeline(img, key);
-      setTimelineMedia((timelineMedia) => [...timelineMedia, newTimelineMedia]);
-      updateCanvas();
+      newTimelineMedia = new ImageMediaTimeline(img, key, () => {
+        updateCanvas();
+        setTimelineMedia((timelineMedia) => [
+          ...timelineMedia,
+          newTimelineMedia,
+        ]);
+      });
     } else if (img instanceof VideoMedia) {
-      newTimelineMedia = new VideoMediaTimeline(img, key, () => updateCanvas());
-      setTimelineMedia((timelineMedia) => [...timelineMedia, newTimelineMedia]);
+      newTimelineMedia = new VideoMediaTimeline(img, key, () => {
+        updateCanvas();
+        setTimelineMedia((timelineMedia) => [
+          ...timelineMedia,
+          newTimelineMedia,
+        ]);
+      });
     }
     function updateCanvas() {
       const container = document.getElementById("playerContainer");
@@ -75,6 +80,9 @@ function MediaCard({ img }: { img: BaseMedia }) {
       }
     }
   }
+  const [, setTimelineMedia] = useContext(TimelineMediaContext);
+  const selectCard = useContext(SelectCardContext);
+  const [canvas] = useContext(FabricContext);
 
   return (
     <Box

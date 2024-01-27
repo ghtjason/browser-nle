@@ -159,14 +159,18 @@ export abstract class MediaTimeline {
 export class ImageMediaTimeline extends MediaTimeline {
   end: number = 4000;
   media: ImageMedia;
-  element: HTMLImageElement;
+  element!: HTMLImageElement;
 
-  constructor(img: ImageMedia, key: string) {
+  constructor(img: ImageMedia, key: string, imageLoaded: () => void) {
     super(key);
     this.media = img;
     const image = new Image();
+    image.onload = () => {
+      this.element = image;
+      imageLoaded();
+    };
+
     image.src = img.objectURL;
-    this.element = image;
   }
 }
 

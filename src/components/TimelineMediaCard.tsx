@@ -1,6 +1,6 @@
 import { Box, Icon } from "@chakra-ui/react";
 import { ImageMediaTimeline, MediaTimeline, VideoMediaTimeline } from "./Media";
-import { useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import {
   SelectCardContext,
   SelectedCardContext,
@@ -11,7 +11,63 @@ import {
   TimelineMediaContext,
 } from "../context/TimelineMediaContext";
 import { IconDotsVertical } from "@tabler/icons-react";
-import { TimeRatioContext } from "../context/TimeContext";
+import {
+  PlayContext,
+  TimeContext,
+  TimeRatioContext,
+} from "../context/TimeContext";
+
+// handles element visibility and video time on fabric canvas
+const HandleCanvas = memo(({ i }: { i: MediaTimeline }) => {
+  const [, , , , isPlaying] = useContext(PlayContext);
+  const elapsedTime = useContext(TimeContext);
+  const [canvas] = useContext(FabricContext);
+  if (!i.fabricObject) return;
+  if (isPlaying) {
+    if (elapsedTime >= i.end || elapsedTime < i.start) {
+      i.fabricObject.visible = false;
+      if (i instanceof VideoMediaTimeline) {
+        i.element.pause();
+        const startTime = i.offsetStart / 1000;
+        if (i.element.currentTime != startTime && elapsedTime < i.end)
+          i.element.currentTime = startTime;
+      }
+    } else {
+      i.fabricObject.visible = true;
+      if (i instanceof VideoMediaTimeline && i.element.paused) {
+        i.element.play(); // assume time has been seeked to correct location
+      }
+    }
+  } else {
+    if (elapsedTime >= i.end || elapsedTime < i.start) {
+      let changedVisibility = false;
+      if (i.fabricObject.visible) {
+        i.fabricObject.visible = false;
+        changedVisibility = true;
+      }
+      if (i instanceof VideoMediaTimeline) {
+        i.element.onseeked = () => {
+          canvas?.renderAll();
+        };
+        i.element.pause();
+        if (i.element.currentTime != 0) i.element.currentTime = 0;
+      } else if (changedVisibility) canvas?.requestRenderAll();
+    } else {
+      if (i instanceof VideoMediaTimeline) {
+        i.element.onseeked = () => {
+          i.fabricObject!.visible = true;
+          if (canvas && canvas.getContext()) canvas.renderAll();
+        };
+        i.element.pause();
+        i.element.currentTime = (elapsedTime - i.start + i.offsetStart) / 1000;
+      } else {
+        i.fabricObject.visible = true;
+        canvas?.requestRenderAll();
+      }
+    }
+  }
+  return false;
+});
 
 const InsideCard = ({
   thumbnail,
@@ -73,7 +129,7 @@ interface IProps {
   track: number;
 }
 
-export default function TimelineMediaCard(props: IProps) {
+const TimelineMediaCard = memo((props: IProps) => {
   const [ratio] = useContext(TimeRatioContext);
   const selectCard = useContext(SelectCardContext);
   const selectedCard = useContext(SelectedCardContext);
@@ -94,6 +150,11 @@ export default function TimelineMediaCard(props: IProps) {
   const duration = end - start;
   const width = duration / ratio;
 
+  const [topOffset, setTopOffset] = useState(0);
+  const [bottomOffset, setBottomOffset] = useState(0);
+  const [zIndex, setZIndex] = useState(1);
+
+  const maxOffset = 30;
   // update media object props based on state
   useEffect(() => {
     props.media.start = start;
@@ -140,19 +201,24 @@ export default function TimelineMediaCard(props: IProps) {
     return diff;
   }
 
-  const cardTop = useRef(0);
-  // props.track not properly updating inside (because event listener?); workaround
+  const cardMid = useRef(0);
+  // props.track and tlmedia not properly updating inside
   const track = useRef(props.track);
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const diff = e.pageX - start / ratio;
-    cardTop.current = e.pageY - e.nativeEvent.offsetY;
+    cardMid.current = e.pageY;
+    track.current = props.track;
     const spacing = 8;
     const ogStart = start;
     const ogEnd = end;
+    setZIndex(2);
     const handleMouseUp = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       setLeftHighlighted(false);
       setRightHighlighted(false);
+      setTopOffset(0);
+      setBottomOffset(0);
+      setZIndex(1);
       refreshSnapTimes();
       handleClick();
     };
@@ -162,6 +228,8 @@ export default function TimelineMediaCard(props: IProps) {
     }
     function changeTrack(a: number, b: number) {
       if (!canChangeTrack(a, b)) return;
+      setTopOffset(0);
+      setBottomOffset(0);
       setTimelineMedia((timelineMedia) => {
         const newArray = [...timelineMedia];
         const temp = newArray[a];
@@ -181,18 +249,22 @@ export default function TimelineMediaCard(props: IProps) {
       const snapDiff = snapToEdgeDiff(newStart, newEnd, ogStart, ogEnd);
       setStart(newStart - snapDiff);
       setEnd(newEnd - snapDiff);
-
-      if (cardTop.current - e.pageY > props.height / 2 + spacing) {
+      const distFromMid = cardMid.current - e.pageY;
+      const maxDistance = spacing + props.height;
+      const canGoUp = canChangeTrack(track.current, track.current - 1);
+      const canGoDown = canChangeTrack(track.current, track.current + 1);
+      if (canGoUp)
+        setTopOffset(Math.max(0, (distFromMid / maxDistance) * maxOffset));
+      if (canGoDown)
+        setBottomOffset(Math.max(0, (-distFromMid / maxDistance) * maxOffset));
+      if (distFromMid > maxDistance && canGoUp) {
         changeTrack(track.current, track.current - 1);
         track.current -= 1;
-        cardTop.current -= spacing + props.height;
-      } else if (
-        e.pageY - (cardTop.current + props.height) >
-        props.height / 2 + spacing
-      ) {
+        cardMid.current -= spacing + props.height;
+      } else if (-distFromMid > maxDistance && canGoDown) {
         changeTrack(track.current, track.current + 1);
         track.current += 1;
-        cardTop.current += spacing + props.height;
+        cardMid.current += spacing + props.height;
       }
     };
 
@@ -278,52 +350,73 @@ export default function TimelineMediaCard(props: IProps) {
     props.media instanceof ImageMediaTimeline
       ? props.media.media.objectURL
       : props.media.media.thumbnailURL;
-  return (
-    <div
-      style={{
-        marginLeft: offset,
-        width: width,
-        position: "relative",
-        // cursor: moveCursor,
-      }}
-    >
-      <Icon
-        as={IconDotsVertical}
-        position="absolute"
-        height="100%"
-        right="-14px"
-        aria-label={"extend"}
-        paddingRight="2px"
-        onMouseDown={handleDragRight}
-        cursor="e-resize"
-        color={rightColor}
-      />
-      <Icon
-        as={IconDotsVertical}
-        position="absolute"
-        height="100%"
-        left="-14px"
-        aria-label={"extend"}
-        paddingLeft="2px"
-        onMouseDown={handleDragLeft}
-        cursor="w-resize"
-        color={leftColor}
-      />
 
-      <Box
-        height={props.height}
-        borderRadius="lg"
-        overflow="hidden"
-        borderColor={outline}
-        borderWidth="3px"
-        onClick={handleClick}
-        pointerEvents="auto"
-        zIndex={1}
-        onMouseDown={handleMouseDown}
-        id={props.track.toString()}
+  const buttonTopOffset = (topOffset != 0 ? -topOffset : bottomOffset) * 0.8;
+  return (
+    <>
+      <div
+        style={{
+          marginLeft: offset,
+          width: width,
+          position: "relative",
+          zIndex: zIndex,
+        }}
       >
-        <InsideCard thumbnail={thumbnail} media={props.media} ratio={ratio} offsetStart={offsetStart}/>
-      </Box>
-    </div>
+        <Icon
+          as={IconDotsVertical}
+          position="absolute"
+          height="100%"
+          right="-14px"
+          aria-label={"extend"}
+          paddingRight="2px"
+          onMouseDown={handleDragRight}
+          cursor="e-resize"
+          color={rightColor}
+          top={`${buttonTopOffset}px`}
+        />
+        <Icon
+          as={IconDotsVertical}
+          position="absolute"
+          height="100%"
+          left="-14px"
+          aria-label={"extend"}
+          paddingLeft="2px"
+          onMouseDown={handleDragLeft}
+          cursor="w-resize"
+          color={leftColor}
+          top={`${buttonTopOffset}px`}
+        />
+        <div
+          style={{
+            marginBottom: -bottomOffset + "px",
+            paddingTop: bottomOffset + "px",
+            marginTop: -topOffset + "px",
+            paddingBottom: topOffset + "px",
+          }}
+        >
+          <Box
+            height={props.height}
+            borderRadius="lg"
+            overflow="hidden"
+            borderColor={outline}
+            borderWidth="3px"
+            onClick={handleClick}
+            pointerEvents="auto"
+            onMouseDown={handleMouseDown}
+            id={props.track.toString()}
+          >
+            <InsideCard
+              thumbnail={thumbnail}
+              media={props.media}
+              ratio={ratio}
+              offsetStart={offsetStart}
+            />
+          </Box>
+        </div>
+      </div>
+      <HandleCanvas i={props.media} />
+    </>
   );
-}
+});
+
+export default TimelineMediaCard;
