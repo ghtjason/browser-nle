@@ -18,18 +18,18 @@ import {
 } from "../context/TimeContext";
 
 // handles element visibility and video time on fabric canvas
-const HandleCanvas = memo(({ i }: { i: MediaTimeline }) => {
+const HandleCanvas = ({ i, start, end }: { i: MediaTimeline, start: number, end: number}) => {
   const [, , , , isPlaying] = useContext(PlayContext);
   const elapsedTime = useContext(TimeContext);
   const [canvas] = useContext(FabricContext);
   if (!i.fabricObject) return;
   if (isPlaying) {
-    if (elapsedTime >= i.end || elapsedTime < i.start) {
+    if (elapsedTime >= end || elapsedTime < start) {
       i.fabricObject.visible = false;
       if (i instanceof VideoMediaTimeline) {
         i.element.pause();
         const startTime = i.offsetStart / 1000;
-        if (i.element.currentTime != startTime && elapsedTime < i.end)
+        if (i.element.currentTime != startTime && elapsedTime < end)
           i.element.currentTime = startTime;
       }
     } else {
@@ -39,7 +39,7 @@ const HandleCanvas = memo(({ i }: { i: MediaTimeline }) => {
       }
     }
   } else {
-    if (elapsedTime >= i.end || elapsedTime < i.start) {
+    if (elapsedTime >= end || elapsedTime < start) {
       let changedVisibility = false;
       if (i.fabricObject.visible) {
         i.fabricObject.visible = false;
@@ -59,7 +59,7 @@ const HandleCanvas = memo(({ i }: { i: MediaTimeline }) => {
           if (canvas && canvas.getContext()) canvas.renderAll();
         };
         i.element.pause();
-        i.element.currentTime = (elapsedTime - i.start + i.offsetStart) / 1000;
+        i.element.currentTime = (elapsedTime - start + i.offsetStart) / 1000;
       } else {
         i.fabricObject.visible = true;
         canvas?.requestRenderAll();
@@ -67,7 +67,7 @@ const HandleCanvas = memo(({ i }: { i: MediaTimeline }) => {
     }
   }
   return false;
-});
+};
 
 const InsideCard = ({
   thumbnail,
@@ -429,7 +429,7 @@ const TimelineMediaCard = memo((props: IProps) => {
           </Box>
         </div>
       </div>
-      <HandleCanvas i={props.media} />
+      <HandleCanvas i={props.media} start={start} end={end} />
     </>
   );
 });
